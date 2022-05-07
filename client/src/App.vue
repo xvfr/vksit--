@@ -1,118 +1,42 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from '@/components/HelloWorld.vue'
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <q-layout class="shadow-2 rounded-borders">
+	<q-header elevated>
+	  <q-toolbar class="bg-indigo-4">
+		<q-btn flat round dense icon="menu" class="q-mr-sm lt-md" />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+		<q-avatar size="md" rounded class="cursor-pointer" @click="$router.push('/')">
+		  <img
+			  src="https://sun9-86.userapi.com/s/v1/ig2/MTDXbf8e4rG1P76_MRXjBlbCrqs576IjSBsYuukWqTgCXv2sAD5ph8bcgQhXf2KibcL8SnRfRc5C6iQZaZBEbBh9.jpg?size=649x648&quality=96&type=album">
+		</q-avatar>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+		<q-toolbar-title>
+		  <span class="cursor-pointer" @click="$router.push('/')">АПОУ «Вологодский колледж связи и информационных технологий»</span>
+		</q-toolbar-title>
 
-  <RouterView />
+		<q-tabs>
+		  <q-route-tab to="/" label="Подача заявлений" />
+		  <q-route-tab to="rating" label="Рейтинг абитуриентов" />
+		</q-tabs>
+
+		<q-btn flat round dense icon="done" class="q-ml-sm" />
+	  </q-toolbar>
+	</q-header>
+
+	<q-page-container class="column flex-center" style="min-height: 100vh !important;">
+	  <router-view />
+	</q-page-container>
+  </q-layout>
+
 </template>
 
-<style lang="scss">
-@import 'assets/base.css';
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+<script lang="ts">
+export default {
+	data () {
+		return {}
+	}
 }
-
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
-
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
+</script>
