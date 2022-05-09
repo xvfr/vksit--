@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-</script>
-
 <template>
   <q-layout class="shadow-2 rounded-borders">
 	<q-header elevated>
@@ -17,8 +13,8 @@ import { RouterLink, RouterView } from 'vue-router'
 		  <span class="cursor-pointer" @click="$router.push('/')">АПОУ «Вологодский колледж связи и информационных технологий»</span>
 		</q-toolbar-title>
 
-		<q-tabs>
-		  <q-route-tab to="/" label="Подача заявлений" />
+		<q-tabs class="gt-sm">
+		  <q-route-tab to="/" label="Подача заявления" />
 		  <q-route-tab to="rating" label="Рейтинг абитуриентов" />
 		</q-tabs>
 
@@ -26,17 +22,25 @@ import { RouterLink, RouterView } from 'vue-router'
 	  </q-toolbar>
 	</q-header>
 
-	<q-page-container class="column flex-center" style="min-height: 100vh !important;">
+	<q-page-container class="page-container">
 	  <router-view />
 	</q-page-container>
   </q-layout>
 
 </template>
 
-<script lang="ts">
-export default {
-	data () {
-		return {}
-	}
+<style lang="scss">
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+
+  @media screen and (min-width: $breakpoint-md-min) {
+	align-items: center;
+	justify-content: center;
+  }
+
+  min-height: 100vh;
 }
-</script>
+
+</style>
