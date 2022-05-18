@@ -23,7 +23,7 @@
 	</q-header>
 
 	<q-page-container class="page-container">
-	  <router-view />
+		<router-view />
 	</q-page-container>
   </q-layout>
 
@@ -36,8 +36,8 @@
   flex-direction: column;
 
   @media screen and (min-width: $breakpoint-md-min) {
-	align-items: center;
-	justify-content: center;
+    align-items: center;
+    justify-content: center;
   }
 
   min-height: 100vh;

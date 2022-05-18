@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { nextTick, reactive, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
+import api from '@/api'
 
 const
+	$q = useQuasar(),
 	currentStep = ref( localStorage.currentStep || 'aboutMe' ),
 	loading = reactive( {
 		page : false,
@@ -68,6 +71,29 @@ const
 			title : 'Нет'
 		}
 	] )
+
+;( async () => {
+
+	try {
+
+		const { data } = await api.get( 'userss' )
+		console.log( data )
+
+	} catch ( e ) {
+
+		console.log( e )
+
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить список специальностей',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom'
+		} )
+
+	}
+
+} )()
 
 setTimeout( () => {
 
@@ -145,6 +171,7 @@ watch( lastName, ( value ) =>
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 )
+
 watch( firstName, ( value ) => {
 	nextTick( () => {
 		value && ( firstName.value = value
@@ -152,6 +179,7 @@ watch( firstName, ( value ) => {
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 } )
+
 watch( middleName, ( value ) => {
 	nextTick( () => {
 		value && ( middleName.value = value
@@ -159,6 +187,7 @@ watch( middleName, ( value ) => {
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 } )
+
 watch( passportAddressEqual, () => passportAddress.value = address.value )
 
 </script>
