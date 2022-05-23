@@ -45,29 +45,19 @@ const
 		}
 	],
 
-	rows = [
-		{
-			statementID : 2434,
-			fullName : 'Офыовлфывофлыв Вфлывдфывл ВЛЛдфывлфдывдл',
-			createdAt : '23.04.2012',
-			phoneNumber : '+7 900 400 99-00',
-			email : 'dkkddkkk@mail.ru'
-		},
-		{
-			statementID : 2435,
-			fullName : 'Офыовлфывофлыв Вфлывдфывл ВЛЛдфывлфдывдл',
-			createdAt : '23.04.2012',
-			phoneNumber : '+7 900 400 99-00',
-			email : 'dkkddkkk@mail.ru'
-		},
-		{
-			statementID : 2437,
-			fullName : 'Офыовлфывофлыв Вфлывдфывл ВЛЛдфывлфдывдл',
-			createdAt : '23.04.2012',
-			phoneNumber : '+7 900 400 99-00',
-			email : 'dkkddkkk@mail.ru'
-		}
-	]
+	rows = []
+
+import faker from '@faker-js/faker/locale/ru'
+
+for ( let i = 2045; i < 2050; i++ ) {
+	rows.push( {
+		statementID : i,
+		fullName : `${faker.name.firstName()} ${faker.name.lastName()} ${faker.name.middleName()}`,
+		createdAt : new Date( faker.date.past() ).toLocaleDateString(),
+		phoneNumber : faker.phone.phoneNumber( '+7 (9##) ### ##-##' ),
+		email : faker.internet.email()
+	} )
+}
 
 </script>
 

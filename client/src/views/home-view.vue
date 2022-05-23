@@ -630,10 +630,13 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 				:loading="loading.socialStatuses"
 			/>
 
-			<q-checkbox
+			<q-toggle
 				class="col-auto"
 				v-model="dormitory"
 				label="Мне нужно общежитие"
+				checked-icon="check"
+				color="green"
+				unchecked-icon="clear"
 			/>
 		  </div>
 
