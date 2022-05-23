@@ -17,7 +17,7 @@ watch( login, ( value ) => !!value ? localStorage.login = value : delete localSt
 	</div>
 
 	<div class="text-caption text-grey">
-	  Вход в панель управления для администрации колледжа.
+	  Вход в панель управления для администрации колледжа
 	</div>
 
 	<q-card-section>

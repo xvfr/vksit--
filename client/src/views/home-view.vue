@@ -21,7 +21,6 @@ const
 	address = ref<null | string>( null ),
 	phoneNumber = ref<null | string>( null ),
 	email = ref<null | string>( null ),
-	// TODO :: change type
 	photo = ref<object[]>( [] ),
 
 	// 2 step

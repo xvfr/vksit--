@@ -1,6 +1,14 @@
 <script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { useQuasar } from 'quasar'
+import api from '@/api'
 
 const
+	$q = useQuasar(),
+	loading = reactive( {
+		specializations : true
+	} ),
+
 	columns : any = [
 		{
 			name : 'position',
@@ -61,40 +69,53 @@ const
 			format : ( value : boolean ) => value ? 'Да' : ''
 		}
 	],
-	rows = [
-		{
-			position : 1,
-			firstName : 'Иванов',
-			lastName : 'Иван',
-			middleName : 'иванович',
-			averageScore : 4.35,
-			createdAt : '24.07.2022',
-			isOriginal : false
-		},
-		{
-			position : 2,
-			firstName : 'Иванов',
-			lastName : 'Ив123123ан',
-			middleName : 'иванович',
-			averageScore : 4.55,
-			createdAt : '25.07.2022',
-			isOriginal : true
-		},
-		{
-			position : 3,
-			firstName : 'Dasdadasd',
-			lastName : 'Ив123123ан',
-			middleName : 'иванович',
-			averageScore : 4.55,
-			createdAt : '25.07.2022',
-			isOriginal : false
-		}
-	]
+	rows = [],
+
+	selectedSpecialization = ref<object | null>( null ),
+	specializations = ref<object[]>( [] )
+
+;( async () => {
+
+	try {
+
+		const
+			{ data : { groups } } = await api.get( 'groups' )
+
+		specializations.value.push( ...groups )
+		loading.specializations = false
+
+	} catch ( e ) {
+
+		console.error( e )
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить список специальностей',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom-left'
+		} )
+
+	}
+
+} )()
+
+import faker from '@faker-js/faker/locale/ru'
+
+for ( let i = 1; i < 30; i++ )
+	rows.push( {
+		position : i,
+		firstName : faker.name.firstName(),
+		lastName : faker.name.lastName(),
+		middleName : faker.name.middleName(),
+		averageScore : ( Math.random() * ( 5 - 1 ) + 1 ).toFixed( 2 ),
+		createdAt : new Date( faker.date.past() ).toLocaleDateString(),
+		isOriginal : Math.random() > 0.5
+	} )
 
 </script>
 
 <template>
-  <q-card square class="rating-form q-pa-md">
+  <q-card square class="rating-form q-pa-md" :class="$q.screen.lt.md || 'q-my-md'">
 
 	<div class="text-overline">
 	  Рейтинг абитуриентов
@@ -102,15 +123,27 @@ const
 
 	<q-card-section>
 
-<!--	  <q-select-->
-<!--		  model-value=""-->
-<!--	  />-->
+	  <q-select
+		  label="Выберите специальность"
+		  v-model="selectedSpecialization"
+		  :loading="loading.specializations"
+		  :options="specializations"
+
+		  option-label="name"
+		  option-value="groupID"
+	  />
+
+	</q-card-section>
+	<q-card-section>
 
 	  <q-table
+		  :grid="$q.screen.lt.md"
 		  flat
 		  table-header-class="bg-grey-2"
 		  :columns="columns"
 		  :rows="rows"
+
+		  :pagination="{ rowsPerPage : 25 }"
 	  />
 
 	</q-card-section>
