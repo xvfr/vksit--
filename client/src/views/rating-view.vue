@@ -139,9 +139,11 @@ for ( let i = 1; i < 30; i++ )
 	  <q-table
 		  :grid="$q.screen.lt.md"
 		  flat
-		  table-header-class="bg-grey-2"
 		  :columns="columns"
 		  :rows="rows"
+
+		  table-header-class="bg-grey-2"
+		  table-class="highlights"
 
 		  :pagination="{ rowsPerPage : 25 }"
 	  />
@@ -166,5 +168,9 @@ for ( let i = 1; i < 30; i++ )
   }
 
 }
+
+//:deep( .highlights tr:nth-child( -n+25 ) ) {
+//  background-color: red;
+//}
 
 </style>
