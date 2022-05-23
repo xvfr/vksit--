@@ -1,12 +1,22 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const
+	drawer = ref( false )
+
+</script>
+
 <template>
   <q-layout class="shadow-2 rounded-borders">
 	<q-header elevated>
 	  <q-toolbar class="bg-indigo-4">
-		<q-btn flat round dense icon="menu" class="q-mr-sm lt-md" />
+		<q-btn @click="drawer = !drawer" flat round dense icon="menu" class="q-mr-sm lt-md" />
 
 		<q-avatar size="md" rounded class="cursor-pointer" @click="$router.push('/')">
 		  <img
-			  src="https://sun9-86.userapi.com/s/v1/ig2/MTDXbf8e4rG1P76_MRXjBlbCrqs576IjSBsYuukWqTgCXv2sAD5ph8bcgQhXf2KibcL8SnRfRc5C6iQZaZBEbBh9.jpg?size=649x648&quality=96&type=album">
+			  src="https://sun9-86.userapi.com/s/v1/ig2/MTDXbf8e4rG1P76_MRXjBlbCrqs576IjSBsYuukWqTgCXv2sAD5ph8bcgQhXf2KibcL8SnRfRc5C6iQZaZBEbBh9.jpg?size=649x648&quality=96&type=album"
+			  alt="logo"
+		  >
 		</q-avatar>
 
 		<q-toolbar-title>
@@ -18,12 +28,19 @@
 		  <q-route-tab to="rating" label="Рейтинг абитуриентов" />
 		</q-tabs>
 
-		<q-btn flat round dense icon="done" class="q-ml-sm" />
+		<q-btn to="login" flat round dense icon="done" class="q-ml-sm" />
 	  </q-toolbar>
 	</q-header>
 
+	<q-drawer v-model="drawer">
+		<q-tabs vertical class="text-grey-6" active-color="indigo-4">
+		  <q-route-tab to="/" label="Подача заявления" />
+		  <q-route-tab to="rating" label="Рейтинг абитуриентов" />
+		</q-tabs>
+	</q-drawer>
+
 	<q-page-container class="page-container">
-		<router-view />
+	  <router-view />
 	</q-page-container>
   </q-layout>
 

@@ -6,10 +6,17 @@ const
 
 socialStatusesRouter.get( '/', async ( req, res, next ) => {
 
-	const socialStatuses = await db( 'social_statuses' )
-		.select( 'social_status_id', 'name' )
+	const
+		socialStatuses = await db( 'social_statuses' )
+			.select( 'social_status_id', 'title' )
 
-	res.send( { socialStatuses } )
+	const
+		formattedSocialStatuses = socialStatuses.map( ss => ( {
+			statusID : ss.social_status_id,
+			title : ss.title
+		} ) )
+
+	res.send( { socialStatuses : formattedSocialStatuses } )
 
 } )
 

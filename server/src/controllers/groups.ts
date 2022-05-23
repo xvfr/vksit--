@@ -6,10 +6,18 @@ const
 
 groupsRouter.get( '/', async ( req, res, next ) => {
 
-	const groups = await db( 'groups' )
-		.select( 'group_id', 'name', 'short_name', 'code' )
+	const
+		groups = await db( 'groups' )
+			.select( 'group_id', 'name', 'short_name' )
 
-	res.send( { groups } )
+	const
+		formattedGroups = groups.map( g => ( {
+			groupID : g.group_id,
+			name : g.name,
+			shortName : g.short_name
+		} ) )
+
+	res.send( { groups : formattedGroups } )
 
 } )
 

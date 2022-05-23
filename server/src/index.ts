@@ -1,6 +1,7 @@
 // npm
 
 import express, { Request, Response, NextFunction } from 'express'
+import cors from 'cors'
 import 'dotenv/config'
 
 // controllers
@@ -15,6 +16,7 @@ const
 	app = express()
 
 app.use( express.json() )
+app.use( cors() )
 
 // routers
 app.use( '/api/applications', applicationsRouter )

@@ -21,7 +21,8 @@ const
 	address = ref<null | string>( null ),
 	phoneNumber = ref<null | string>( null ),
 	email = ref<null | string>( null ),
-	photo = ref<null | string>( null ),
+	// TODO :: change type
+	photo = ref<object[]>( [] ),
 
 	// 2 step
 
@@ -32,7 +33,7 @@ const
 	passportAddress = ref<null | string>( null ),
 	passportAddressEqual = ref( false ),
 	passportCode = ref<null | string>( null ),
-	passportScan = ref<null | string>( null ),
+	passportScan = ref<object[]>( [] ),
 
 	// 3 step
 
@@ -46,7 +47,7 @@ const
 		foreign : null,
 		russian : null
 	} ),
-	certificateScan = ref<null | number>( null ),
+	certificateScan = ref<object[]>( [] ),
 
 	// 4 step
 
@@ -61,7 +62,7 @@ const
 		mark : ( v : number ) => v <= 5 && v >= 1 || 'введите корректное значение'
 	},
 
-	possibleEndSchoolYears = Array( 5 ).fill( new Date().getFullYear() ).map( ( e, i ) => e -= i ),
+	possibleEndSchoolYears = Array( 5 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i ),
 
 	specializations = ref<object[]>( [] ),
 
@@ -72,93 +73,52 @@ const
 		}
 	] )
 
+
 ;( async () => {
 
 	try {
 
-		const { data } = await api.get( 'userss' )
-		console.log( data )
+		const
+			{ data : { groups } } = await api.get( 'groups' )
+
+		specializations.value.push( ...groups )
+		loading.specializations = false
 
 	} catch ( e ) {
 
-		console.log( e )
-
+		console.error( e )
 		$q.notify( {
 			progress : true,
 			message : 'Не удалось загрузить список специальностей',
 			caption : 'Подробная информация в консоли',
 			type : 'warning',
-			position : 'bottom'
+			position : 'bottom-left'
+		} )
+
+	}
+
+	try {
+
+		const
+			{ data : { socialStatuses : statuses } } = await api.get( 'social-statuses' )
+
+		socialStatuses.value.push( ...statuses )
+		loading.socialStatuses = false
+
+	} catch ( e ) {
+
+		console.error( e )
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить список соц. статусов',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom-left'
 		} )
 
 	}
 
 } )()
-
-setTimeout( () => {
-
-	specializations.value.push(
-		{
-			id : 1,
-			name : 'Сетевое и системное администрирование',
-			shortName : 'СисАдм'
-		},
-		{
-			id : 2,
-			name : 'Информационные системы и программирование/Администратор баз данных',
-			shortName : 'ИСП/АдмБД'
-		},
-		{
-			id : 9,
-			name : 'Техническое обслуживание и ремонт радиоэлектронной техники',
-			shortName : 'ТО'
-		},
-		{
-			id : 3,
-			name : 'Информационные системы и программирование/Программист',
-			shortName : 'ИСП/Программист'
-		},
-		{
-			id : 4,
-			name : 'Информационные системы и программирование/Разработчик веб и мультимедийных приложений',
-			shortName : 'ИСП/ВЕБ'
-		},
-		{
-			id : 5,
-			name : 'Обеспечение информационной безопасности телекоммуникационных систем',
-			shortName : 'ОИБ'
-		},
-		{
-			id : 11,
-			name : 'Техническое обслуживание и ремонт радиоэлектронной техники/Платная',
-			shortName : 'ТО/Платная'
-		},
-		{
-			id : 6,
-			name : 'Электромонтер охранно-пожарной сигнализации',
-			shortName : 'ОПС'
-		},
-		{
-			id : 7,
-			name : 'Документационное обеспечение управления и архивоведение',
-			shortName : 'ДО'
-		}
-	)
-
-	loading.specializations = false
-
-}, 3000 )
-
-setTimeout( () => {
-
-	socialStatuses.value.push( {
-		statusID : 1,
-		title : 'Сироты'
-	} )
-
-	loading.socialStatuses = false
-
-}, 1700 )
 
 watch( currentStep, ( step ) => localStorage.currentStep = step )
 
@@ -196,12 +156,6 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
   <q-card square class="application-form">
 	<q-card-section>
 	  <div class="text-overline">Подача заявления</div>
-
-	  <!--	  <div class="text-h5 q-mt-sm q-mb-xs">Title</div>-->
-	  <!--	  <div class="text-caption text-grey">-->
-	  <!--		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore-->
-	  <!--		magna aliqua.-->
-	  <!--	  </div>-->
 
 	  <q-stepper
 		  keep-alive
@@ -323,6 +277,9 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 				flat
 				color="indigo-4"
 				accept="image/*"
+
+				@added=" ( files ) => photo.push( files ) "
+				@removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
 			/>
 		  </div>
 		  <div class="text-grey text-caption">* прикрепление фото необязательно</div>
@@ -453,6 +410,9 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 				flat
 				color="indigo-4"
 				accept="image/*"
+
+				@added=" ( files ) => passportScan.push( ...files ) "
+				@removed=" ( files ) => passportScan.splice( passportScan.findIndex( p => p === files[0] ), 1 ) "
 			/>
 		  </div>
 		  <div class="text-grey text-caption">* необходимо прикрепить фотографию/скан паспорта на которых видны 2,3,4,5
@@ -590,6 +550,9 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 				flat
 				color="indigo-4"
 				accept="image/*"
+
+				@added=" ( files ) => certificateScan.push( files ) "
+				@removed=" ( files ) => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 ) "
 			/>
 		  </div>
 		  <div class="text-grey text-caption">* необходимо прикрепить фотографию/скан аттестата на которых видны:
@@ -701,7 +664,7 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
   </q-card>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
 .application-form {
   width: 50%;
