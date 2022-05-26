@@ -2,11 +2,13 @@
 import { reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
+import faker from '@faker-js/faker/locale/ru'
 
 const
 	$q = useQuasar(),
 	loading = reactive( {
-		specializations : true
+		specializations : true,
+		rating : true
 	} ),
 
 	columns : any = [
@@ -51,14 +53,6 @@ const
 			sortable : true
 		},
 		{
-			name : 'createdAt',
-			label : 'Дата подачи заявления',
-			field : 'createdAt',
-			align : 'center',
-
-			sortable : true
-		},
-		{
 			name : 'isOriginal',
 			label : 'Оригинал аттестата',
 			field : 'isOriginal',
@@ -66,10 +60,10 @@ const
 
 			sortable : true,
 
-			format : ( value : boolean ) => value ? 'Да' : ''
+			format : ( value : boolean ) => value ? 'Оригинал' : 'Копия'
 		}
 	],
-	rows = [],
+	rows : any = [],
 
 	selectedSpecialization = ref<object | null>( null ),
 	specializations = ref<object[]>( [] )
@@ -99,8 +93,6 @@ const
 
 } )()
 
-import faker from '@faker-js/faker/locale/ru'
-
 for ( let i = 1; i < 30; i++ )
 	rows.push( {
 		position : i,
@@ -123,9 +115,13 @@ for ( let i = 1; i < 30; i++ )
 
 	<q-card-section>
 
+<!--	  TODO :: search lastname-->
+<!--	  TODO :: subscribe-->
+
 	  <q-select
-		  label="Выберите специальность"
 		  v-model="selectedSpecialization"
+
+		  label="Выберите специальность"
 		  :loading="loading.specializations"
 		  :options="specializations"
 
@@ -141,11 +137,13 @@ for ( let i = 1; i < 30; i++ )
 		  flat
 		  :columns="columns"
 		  :rows="rows"
+		  separator="vertical"
+		  :loading="loading.rating"
 
-		  table-header-class="bg-grey-2"
-		  table-class="highlights"
+		  table-header-class="bg-indigo-1"
+		  table-class="rating"
 
-		  :pagination="{ rowsPerPage : 25 }"
+		  :pagination="{ rowsPerPage : 50, sortBy : 'isOriginal', descending : true }"
 	  />
 
 	</q-card-section>
@@ -169,8 +167,12 @@ for ( let i = 1; i < 30; i++ )
 
 }
 
-//:deep( .highlights tr:nth-child( -n+25 ) ) {
-//  background-color: red;
-//}
+:deep( .rating tr:nth-child(2n) ) {
+  background-color: #f5f5f5;
+}
+
+:deep( .rating tr:nth-child( 25 ) td ) {
+  border-bottom: 1px dashed indigo;
+}
 
 </style>

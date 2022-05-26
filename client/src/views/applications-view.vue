@@ -1,9 +1,15 @@
 <script setup lang="ts">
+import { reactive } from 'vue'
+import faker from '@faker-js/faker'
 
 const
+	loading = reactive( {
+		applications : true
+	} ),
+
 	columns : any = [
 		{
-			name : 'identification',
+			name : 'statementID',
 			label : '#',
 			field : 'statementID',
 			align : 'left',
@@ -45,14 +51,12 @@ const
 		}
 	],
 
-	rows = []
+	rows : any = []
 
-import faker from '@faker-js/faker/locale/ru'
-
-for ( let i = 2045; i < 2050; i++ ) {
+for ( let i = 1; i < 25; i++ ) {
 	rows.push( {
 		statementID : i,
-		fullName : `${faker.name.firstName()} ${faker.name.lastName()} ${faker.name.middleName()}`,
+		fullName : `${ faker.name.firstName() } ${ faker.name.lastName() } ${ faker.name.middleName() }`,
 		createdAt : new Date( faker.date.past() ).toLocaleDateString(),
 		phoneNumber : faker.phone.phoneNumber( '+7 (9##) ### ##-##' ),
 		email : faker.internet.email()
@@ -75,14 +79,23 @@ for ( let i = 2045; i < 2050; i++ ) {
 	<q-card-section>
 
 	  <q-table
+		  :loading="loading.applications"
 		  :grid="$q.screen.lt.md"
 		  flat
+		  separator="cell"
 		  table-header-class="bg-grey-2"
 		  :columns="columns"
 		  :rows="rows"
 
-		  :pagination="{ rowsPerPage : 25 }"
+		  :pagination="{ rowsPerPage : 50 }"
 	  >
+
+		<template v-slot:body-cell-statementID="props">
+		  <q-td key="statementID" :props="props">
+			<a :href="`applications/${props.row.statementID}`">{{ props.row.statementID }}</a>
+		  </q-td>
+		</template>
+
 		<template v-slot:body-cell-actions="props">
 		  <q-td key="actions" :props="props">
 			<q-btn-group flat>
@@ -92,6 +105,7 @@ for ( let i = 2045; i < 2050; i++ ) {
 			</q-btn-group>
 		  </q-td>
 		</template>
+
 	  </q-table>
 
 	</q-card-section>
