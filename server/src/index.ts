@@ -6,7 +6,7 @@ import 'dotenv/config'
 
 // controllers
 
-import applicationsRouter from './controllers/applications'
+import abiturientsRouter from './controllers/applications'
 import groupsRouter from './controllers/groups'
 import socialStatusesRouter from './controllers/social-statuses'
 
@@ -19,7 +19,7 @@ app.use( express.json() )
 app.use( cors() )
 
 // routers
-app.use( '/api/applications', applicationsRouter )
+app.use( '/api/abiturients', abiturientsRouter )
 app.use( '/api/groups', groupsRouter )
 app.use( '/api/social-statuses', socialStatusesRouter )
 

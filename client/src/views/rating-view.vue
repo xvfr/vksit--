@@ -115,8 +115,8 @@ for ( let i = 1; i < 30; i++ )
 
 	<q-card-section>
 
-<!--	  TODO :: search lastname-->
-<!--	  TODO :: subscribe-->
+	  <!--		TODO :: search lastname		-->
+	  <!--		TODO :: subscribe			-->
 
 	  <q-select
 		  v-model="selectedSpecialization"

@@ -6,7 +6,8 @@ import HomeView from '../views/home-view.vue'
 import RatingView from '../views/rating-view.vue'
 
 const
-	ApplicationsView = () => import( '../views/applications-view.vue' ),
+	AbiturientsView = () => import( '../views/abiturients-view.vue' ),
+	AbiturientView = () => import( '../views/abiturient-view.vue' ),
 	LoginView = () => import( '../views/login-view.vue' )
 
 // router
@@ -22,14 +23,30 @@ const router = createRouter( {
 			component : HomeView
 		},
 		{
-			path : '/applications',
-			name : 'applications',
-			component : ApplicationsView
+			path : '/abiturients',
+			name : 'abiturients',
+			component : AbiturientsView,
+
+			meta : {
+				isAuthorized : true
+			},
+
+			children : [
+				{
+					path : ':id',
+					name : 'abiturient',
+					component : AbiturientView
+				}
+			]
 		},
 		{
 			path : '/login',
 			name : 'login',
-			component : LoginView
+			component : LoginView,
+
+			meta : {
+				isAuthorized : false
+			}
 		},
 		{
 			path : '/rating',

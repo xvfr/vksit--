@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import faker from '@faker-js/faker'
+import { reactive, ref } from 'vue'
+import { useQuasar } from 'quasar'
+import api from '@/api'
 
 const
+	$q = useQuasar(),
 	loading = reactive( {
 		applications : true
 	} ),
 
 	columns : any = [
 		{
-			name : 'statementID',
+			name : 'abiturientID',
 			label : '#',
-			field : 'statementID',
+			field : 'abiturientID',
 			align : 'left',
 
 			sortable : true
@@ -51,17 +53,51 @@ const
 		}
 	],
 
-	rows : any = []
+	abiturients = ref<object[]>([])
 
-for ( let i = 1; i < 25; i++ ) {
-	rows.push( {
-		statementID : i,
-		fullName : `${ faker.name.firstName() } ${ faker.name.lastName() } ${ faker.name.middleName() }`,
-		createdAt : new Date( faker.date.past() ).toLocaleDateString(),
-		phoneNumber : faker.phone.phoneNumber( '+7 (9##) ### ##-##' ),
-		email : faker.internet.email()
-	} )
-}
+// for ( let i = 1; i < 25; i++ ) {
+// 	rows.push( {
+// 		statementID : i,
+// 		fullName : `${ faker.name.firstName() } ${ faker.name.lastName() } ${ faker.name.middleName() }`,
+// 		createdAt : new Date( faker.date.past() ).toLocaleDateString(),
+// 		phoneNumber : faker.phone.phoneNumber( '+7 (9##) ### ##-##' ),
+// 		email : faker.internet.email()
+// 	} )
+// }
+
+;( async () => {
+
+	try {
+
+		const
+			{ data : { items } } = await api.get( 'abiturients' )
+
+		const
+			formattedAbiturients = items.map( ( e : any ) => ( {
+				abiturientID : e.abiturient_id,
+				fullName : `${ e.last_name } ${ e.first_name } ${ e.middle_name }`,
+				createdAt : new Date().toLocaleDateString(),
+				phoneNumber : e.phone,
+				email : e.email
+			} ) )
+
+		abiturients.value.push( ...formattedAbiturients )
+		loading.applications = false
+
+	} catch ( e ) {
+
+		console.error( e )
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить список заявлений',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom-left'
+		} )
+
+	}
+
+} )()
 
 </script>
 
@@ -85,14 +121,14 @@ for ( let i = 1; i < 25; i++ ) {
 		  separator="cell"
 		  table-header-class="bg-grey-2"
 		  :columns="columns"
-		  :rows="rows"
+		  :rows="abiturients"
 
 		  :pagination="{ rowsPerPage : 50 }"
 	  >
 
-		<template v-slot:body-cell-statementID="props">
+		<template v-slot:body-cell-abiturientID="props">
 		  <q-td key="statementID" :props="props">
-			<a :href="`applications/${props.row.statementID}`">{{ props.row.statementID }}</a>
+			<a @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" class="cursor-pointer">{{ props.row.abiturientID }}</a>
 		  </q-td>
 		</template>
 
@@ -110,6 +146,8 @@ for ( let i = 1; i < 25; i++ ) {
 
 	</q-card-section>
 
+	<router-view></router-view>
+
   </q-card>
 </template>
 
@@ -120,7 +158,7 @@ for ( let i = 1; i < 25; i++ ) {
   width: 60%;
 
   @media screen and (max-width: $breakpoint-md-max) {
-    width: 70%;
+    width: 85%;
   }
 
   @media screen and (max-width: $breakpoint-sm-max) {

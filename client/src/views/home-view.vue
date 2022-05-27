@@ -50,8 +50,8 @@ const
 
 	// 4 step
 
-	selectedSpecializations = ref<null | number[]>( [] ),
-	socialStatus = ref<null | number[]>( [] ),
+	selectedSpecializations = ref<null | object[]>( [] ),
+	selectedSocialStatus = ref<null | object[]>( [ { statusID : -1, title : 'Нет' } ] ),
 	dormitory = ref<null | boolean>( false ),
 
 	// other
@@ -72,13 +72,20 @@ const
 		}
 	] )
 
-
 ;( async () => {
 
 	try {
 
 		const
-			{ data : { groups } } = await api.get( 'groups' )
+			{ data : { items } } = await api.get( 'groups' ),
+
+			// TODO :: add groups list to pinia
+
+			groups = items.map( ( e : any ) => ( {
+				groupID : e.group_id,
+				name : e.name,
+				shortName : e.short_name
+			} ) )
 
 		specializations.value.push( ...groups )
 		loading.specializations = false
@@ -99,7 +106,11 @@ const
 	try {
 
 		const
-			{ data : { socialStatuses : statuses } } = await api.get( 'social-statuses' )
+			{ data : { items } } = await api.get( 'social-statuses' ),
+			statuses = items.map( ( e : any ) => ( {
+				statusID : e.social_status_id,
+				title : e.title
+			} ) )
 
 		socialStatuses.value.push( ...statuses )
 		loading.socialStatuses = false
@@ -173,6 +184,9 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 			name="aboutMe"
 			icon="info"
 		>
+
+		  <!--		todo :: add form for validate step		-->
+
 		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
 			<q-input
 				class="col"
@@ -613,7 +627,7 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 			<q-select
 				class="col"
 				label="Социальный статус"
-				v-model="socialStatus"
+				v-model="selectedSocialStatus"
 
 				:options="socialStatuses"
 				option-value="statusID"
