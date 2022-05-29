@@ -128,6 +128,7 @@ const
 
 		<template v-slot:body-cell-abiturientID="props">
 		  <q-td key="statementID" :props="props">
+			<!--	TODO :: customize link	or router-link use	-->
 			<a @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" class="cursor-pointer">{{ props.row.abiturientID }}</a>
 		  </q-td>
 		</template>

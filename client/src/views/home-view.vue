@@ -51,8 +51,10 @@ const
 	// 4 step
 
 	selectedSpecializations = ref<null | object[]>( [] ),
-	selectedSocialStatus = ref<null | object[]>( [ { statusID : -1, title : 'Нет' } ] ),
+	selectedSocialStatuses = ref<null | object[]>( [ { statusID : -1, title : 'Нет' } ] ),
 	dormitory = ref<null | boolean>( false ),
+	extraFiles = ref<object[]>( [] ),
+	extraFilesDialog = ref( false ),
 
 	// other
 
@@ -60,6 +62,30 @@ const
 		required : ( v : string ) => !!v || '* обязательное поле',
 		mark : ( v : number ) => v <= 5 && v >= 1 || 'введите корректное значение'
 	},
+
+	validation = reactive( {
+
+		aboutMe : {
+			isError : false,
+			isDone : false
+		},
+
+		passport : {
+			isError : false,
+			isDone : false
+		},
+
+		certificate : {
+			isError : false,
+			isDone : false
+		},
+
+		finish : {
+			isError : false,
+			isDone : false
+		}
+
+	} ),
 
 	possibleEndSchoolYears = Array( 5 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i ),
 
@@ -70,7 +96,9 @@ const
 			statusID : -1,
 			title : 'Нет'
 		}
-	] )
+	] ),
+
+	stepper = ref()
 
 ;( async () => {
 
@@ -160,6 +188,65 @@ watch( middleName, ( value ) => {
 
 watch( passportAddressEqual, () => passportAddress.value = address.value )
 
+watch( selectedSocialStatuses, ( value ) => {
+
+	if ( !value || value.length <= 1 )
+		return
+
+	const
+		lastValue = value[ value.length - 1 ] as any
+
+	if ( lastValue.statusID === -1 )
+
+		selectedSocialStatuses.value = [ { statusID : -1, title : 'Нет' } ]
+
+	else {
+
+		const
+			negativeIndex = value.findIndex( ( f : any ) => f.statusID === -1 )
+
+		if ( negativeIndex !== -1 )
+			selectedSocialStatuses.value?.splice( negativeIndex, 1 )
+
+	}
+
+} )
+
+const validateComponents = ( components : { validate () : boolean }[] ) => {
+
+	let
+		isValid = true
+
+	for ( const component of components ) {
+
+		if ( !component.validate() )
+			isValid = false
+
+	}
+
+	return isValid
+
+}
+
+const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certificate' | 'finish' ) => {
+
+	if ( validateComponents( formRef.getValidationComponents() ) ) {
+
+		stepper.value.next()
+		validation[ step ].isDone = true
+
+	} else {
+
+		validation[ step ].isError = true
+		$q.notify( {
+			message : 'Проверьте введенные данные',
+			type : 'negative'
+		} )
+
+	}
+
+}
+
 </script>
 
 <template>
@@ -177,132 +264,142 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 		  active-icon="none"
 		  done-color="green"
 		  :vertical="$q.screen.lt.md"
+
+		  ref="stepper"
 	  >
 
 		<q-step
 			title="О себе"
 			name="aboutMe"
 			icon="info"
+
+			:done="validation.aboutMe.isDone"
+			:error="validation.aboutMe.isError"
 		>
 
 		  <!--		todo :: add form for validate step		-->
 
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-			<q-input
-				class="col"
-				v-model="lastName"
-				label="Фамилия"
-				maxlength="30"
-				counter
-				clearable
-				clear-icon="clear"
-				autogrow
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-input
-				class="col"
-				v-model="firstName"
-				label="Имя"
-				maxlength="30"
-				counter
-				clearable
-				clear-icon="clear"
-				autogrow
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-input
-				class="col"
-				v-model="middleName"
-				label="Отчество"
-				maxlength="30"
-				counter
-				clearable
-				clear-icon="clear"
-				hide-hint
-				hint="* при наличии"
-				autogrow
-				no-error-icon
-			/>
-		  </div>
+		  <q-form ref="firstStepForm">
 
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-			<q-input
-				class="col"
-				v-model="birthDate"
-				type="date"
-				stack-label
-				label="Дата рождения"
-				clearable
-				clear-icon="clear"
-				min="2000-01-01"
-				:max="new Date( new Date().getFullYear() - 16, new Date().getMonth(), new Date().getDate() ).toLocaleDateString('en-ca')"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-input
-				class="col-8"
-				v-model="address"
-				label="Адрес проживания"
-				maxlength="120"
-				counter
-				clearable
-				autogrow
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-		  </div>
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			  <q-input
+				  class="col"
+				  v-model="lastName"
+				  label="Фамилия"
+				  maxlength="30"
+				  counter
+				  clearable
+				  clear-icon="clear"
+				  autogrow
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model="firstName"
+				  label="Имя"
+				  maxlength="30"
+				  counter
+				  clearable
+				  clear-icon="clear"
+				  autogrow
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model="middleName"
+				  label="Отчество"
+				  maxlength="30"
+				  counter
+				  clearable
+				  clear-icon="clear"
+				  hide-hint
+				  hint="* при наличии"
+				  autogrow
+				  no-error-icon
+			  />
+			</div>
 
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-			<q-input
-				class="col"
-				v-model="phoneNumber"
-				label="Номер телефона"
-				clearable
-				clear-icon="clear"
-				mask="phone"
-				fill-mask="_"
-				prefix="+7"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-input
-				class="col-7"
-				v-model="email"
-				label="E-mail"
-				clearable
-				maxlength="80"
-				counter
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required, 'email' ]"
-			/>
-		  </div>
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			  <q-input
+				  class="col"
+				  v-model="birthDate"
+				  type="date"
+				  stack-label
+				  label="Дата рождения"
+				  clearable
+				  clear-icon="clear"
+				  min="2000-01-01"
+				  :max="new Date( new Date().getFullYear() - 16, new Date().getMonth(), new Date().getDate() ).toLocaleDateString('en-ca')"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-input
+				  class="col-8"
+				  v-model="address"
+				  label="Адрес проживания"
+				  maxlength="120"
+				  counter
+				  clearable
+				  autogrow
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			</div>
 
-		  <div class="q-mt-md row">
-			<q-uploader
-				class="col q-mt-none"
-				label="Фото"
-				hide-upload-btn
-				square
-				flat
-				color="indigo-4"
-				accept="image/*"
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			  <q-input
+				  class="col"
+				  v-model="phoneNumber"
+				  label="Номер телефона"
+				  clearable
+				  clear-icon="clear"
+				  mask="phone"
+				  fill-mask="_"
+				  prefix="+7"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-input
+				  class="col-7"
+				  v-model="email"
+				  label="E-mail"
+				  clearable
+				  maxlength="80"
+				  counter
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required, 'email' ]"
+			  />
+			</div>
 
-				@added=" ( files ) => photo.push( files ) "
-				@removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
-			/>
-		  </div>
-		  <div class="text-grey text-caption">* прикрепление фото необязательно</div>
+			<div class="q-mt-md row">
+			  <q-uploader
+				  class="col q-mt-none"
+				  label="Фото"
+				  hide-upload-btn
+				  square
+				  flat
+				  color="indigo-4"
+				  accept="image/*"
+
+				  @added=" ( files ) => photo.push( files ) "
+				  @removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
+			  />
+			</div>
+			<div class="text-grey text-caption">* прикрепление фото необязательно</div>
+
+		  </q-form>
 
 		  <q-stepper-navigation :class="$q.screen.lt.sm || 'row q-gutter-lg'">
 			<q-btn
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="indigo-4"
-				@click="currentStep = 'passport'"
+
+				@click=" validateForm( $refs.firstStepForm, 'aboutMe' ) "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -314,130 +411,139 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 			title="Паспортные данные"
 			name="passport"
 			icon="perm_identity"
+
+			:done="validation.passport.isDone"
+			:error="validation.passport.isError"
 		>
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-			<q-input
-				class="col"
-				v-model="passportSeries"
-				label="Серия"
-				mask="## ##"
-				unmasked-value
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-input
-				class="col"
-				v-model="passportNumber"
-				label="Номер"
-				mask="### ###"
-				unmasked-value
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-input
-				class="col"
-				v-model="passportIssuedDate"
-				type="date"
-				stack-label
-				label="Дата выдачи"
-				clearable
-				clear-icon="clear"
-				min="2000-01-01"
-				:max="new Date().toLocaleDateString('en-ca')"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-		  </div>
 
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-			<q-input
-				class="col"
-				v-model="passportIssuedBy"
-				label="Выдан"
-				maxlength="120"
-				counter
-				clearable
-				autogrow
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-input
-				class="col-2"
-				v-model="passportCode"
-				label="Номер"
-				mask="###-###"
-				unmasked-value
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-		  </div>
+		  <q-form ref="sendStepForm">
 
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-			<q-input
-				class="col"
-				v-model="passportAddress"
-				label="Адрес регистрации"
-				maxlength="120"
-				counter
-				clearable
-				autogrow
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			>
-			  <template v-slot>
-				<q-checkbox
-					class="gt-xs col-auto non-selectable text-indigo-4"
-					v-model="passportAddressEqual"
-					dense
-					label="Совпадает с адресом проживания"
-				/>
-			  </template>
-			</q-input>
-			<q-checkbox
-				class="lt-sm col-auto non-selectable text-indigo-4"
-				v-model="passportAddressEqual"
-				dense
-				label="Совпадает с адресом проживания"
-			/>
-		  </div>
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			  <q-input
+				  class="col"
+				  v-model="passportSeries"
+				  label="Серия"
+				  mask="## ##"
+				  unmasked-value
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model="passportNumber"
+				  label="Номер"
+				  mask="### ###"
+				  unmasked-value
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model="passportIssuedDate"
+				  type="date"
+				  stack-label
+				  label="Дата выдачи"
+				  clearable
+				  clear-icon="clear"
+				  min="2000-01-01"
+				  :max="new Date().toLocaleDateString('en-ca')"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			</div>
 
-		  <div class="q-mt-md row">
-			<q-uploader
-				class="col q-mt-none"
-				label="Скан"
-				hide-upload-btn
-				multiple
-				max-files="4"
-				square
-				flat
-				color="indigo-4"
-				accept="image/*"
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			  <q-input
+				  class="col"
+				  v-model="passportIssuedBy"
+				  label="Выдан"
+				  maxlength="120"
+				  counter
+				  clearable
+				  autogrow
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-input
+				  class="col-2"
+				  v-model="passportCode"
+				  label="Номер"
+				  mask="###-###"
+				  unmasked-value
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			</div>
 
-				@added=" ( files ) => passportScan.push( ...files ) "
-				@removed=" ( files ) => passportScan.splice( passportScan.findIndex( p => p === files[0] ), 1 ) "
-			/>
-		  </div>
-		  <div class="text-grey text-caption">* необходимо прикрепить фотографию/скан паспорта на которых видны 2,3,4,5
-			страницы
-		  </div>
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			  <q-input
+				  class="col"
+				  v-model="passportAddress"
+				  label="Адрес регистрации"
+				  maxlength="120"
+				  counter
+				  clearable
+				  autogrow
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  >
+				<template v-slot>
+				  <q-checkbox
+					  class="gt-xs col-auto non-selectable text-indigo-4"
+					  v-model="passportAddressEqual"
+					  dense
+					  label="Совпадает с адресом проживания"
+				  />
+				</template>
+			  </q-input>
+			  <q-checkbox
+				  class="lt-sm col-auto non-selectable text-indigo-4"
+				  v-model="passportAddressEqual"
+				  dense
+				  label="Совпадает с адресом проживания"
+			  />
+			</div>
+
+			<div class="q-mt-md row">
+			  <q-uploader
+				  class="col q-mt-none"
+				  label="Скан"
+				  hide-upload-btn
+				  multiple
+				  max-files="4"
+				  square
+				  flat
+				  color="indigo-4"
+				  accept="image/*"
+
+				  @added=" ( files ) => passportScan.push( ...files ) "
+				  @removed=" ( files ) => passportScan.splice( passportScan.findIndex( p => p === files[0] ), 1 ) "
+			  />
+			</div>
+			<div class="text-grey text-caption">* необходимо прикрепить фотографию/скан паспорта на которых видны
+			  2,3,4,5
+			  страницы
+			</div>
+
+		  </q-form>
 
 		  <q-stepper-navigation class="row q-gutter-md">
 			<q-btn
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="red-4"
-				@click="currentStep = 'aboutMe'"
+				@click="$refs.stepper.previous()"
 			>
 			  К предыдущему шагу
 			</q-btn>
@@ -445,7 +551,8 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="indigo-4"
-				@click="currentStep = 'certificate'"
+
+				@click=" validateForm( $refs.sendStepForm, 'passport' ) "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -457,127 +564,135 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 			title="Аттестат"
 			name="certificate"
 			icon="school"
+
+			:done="validation.certificate.isDone"
+			:error="validation.certificate.isError"
 		>
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-			<q-input
-				class="col-3"
-				v-model="certificateNumber"
-				label="Номер"
-				mask="##############"
-				unmasked-value
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-input
-				class="col"
-				v-model="schoolName"
-				label="Название школы"
-				counter
-				maxlength="75"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-			<q-select
-				class="col-2"
-				v-model="endSchoolYear"
-				label="Год окончания"
-				:options="possibleEndSchoolYears"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required ]"
-			/>
-		  </div>
 
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-			<q-input
-				class="col"
-				v-model.number="marks.math"
-				label="Оценка по математике"
-				mask="#"
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required, rules.mark ]"
-			/>
-			<q-input
-				class="col"
-				v-model.number="marks.physics"
-				label="Оценка по физике"
-				mask="#"
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required, rules.mark ]"
-			/>
-			<q-input
-				class="col"
-				v-model.number="marks.informatics"
-				label="Оценка по информатике"
-				mask="#"
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required, rules.mark ]"
-			/>
-			<q-input
-				class="col"
-				v-model.number="marks.foreign"
-				label="Оценка по иностранному языку"
-				mask="#"
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required, rules.mark ]"
-			/>
-			<q-input
-				class="col"
-				v-model.number="marks.russian"
-				label="Оценка по русскому языку"
-				mask="#"
-				fill-mask="_"
-				clearable
-				clear-icon="clear"
-				no-error-icon
-				:rules="[ rules.required, rules.mark ]"
-			/>
-		  </div>
+		  <q-form ref="thirdStepForm">
 
-		  <div class="q-mt-md row">
-			<q-uploader
-				class="col q-mt-none"
-				label="Скан"
-				hide-upload-btn
-				multiple
-				max-files="3"
-				square
-				flat
-				color="indigo-4"
-				accept="image/*"
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			  <q-input
+				  class="col-3"
+				  v-model="certificateNumber"
+				  label="Номер"
+				  mask="##############"
+				  unmasked-value
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model="schoolName"
+				  label="Название школы"
+				  counter
+				  maxlength="75"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			  <q-select
+				  class="col-2"
+				  v-model="endSchoolYear"
+				  label="Год окончания"
+				  :options="possibleEndSchoolYears"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+			  />
+			</div>
 
-				@added=" ( files ) => certificateScan.push( files ) "
-				@removed=" ( files ) => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 ) "
-			/>
-		  </div>
-		  <div class="text-grey text-caption">* необходимо прикрепить фотографию/скан аттестата на которых видны:
-			главная страница документа и приложения к аттестату с оценками (обе стороны)
-		  </div>
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			  <q-input
+				  class="col"
+				  v-model.number="marks.math"
+				  label="Оценка по математике"
+				  mask="#"
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required, rules.mark ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model.number="marks.physics"
+				  label="Оценка по физике"
+				  mask="#"
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required, rules.mark ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model.number="marks.informatics"
+				  label="Оценка по информатике"
+				  mask="#"
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required, rules.mark ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model.number="marks.foreign"
+				  label="Оценка по иностранному языку"
+				  mask="#"
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required, rules.mark ]"
+			  />
+			  <q-input
+				  class="col"
+				  v-model.number="marks.russian"
+				  label="Оценка по русскому языку"
+				  mask="#"
+				  fill-mask="_"
+				  clearable
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required, rules.mark ]"
+			  />
+			</div>
+
+			<div class="q-mt-md row">
+			  <q-uploader
+				  class="col q-mt-none"
+				  label="Скан"
+				  hide-upload-btn
+				  multiple
+				  max-files="3"
+				  square
+				  flat
+				  color="indigo-4"
+				  accept="image/*"
+
+				  @added=" ( files ) => certificateScan.push( files ) "
+				  @removed=" ( files ) => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 ) "
+			  />
+			</div>
+			<div class="text-grey text-caption">* необходимо прикрепить фотографию/скан аттестата на которых видны:
+			  главная страница документа и приложения к аттестату с оценками (обе стороны)
+			</div>
+
+		  </q-form>
 
 		  <q-stepper-navigation class="row q-gutter-md">
 			<q-btn
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="red-4"
-				@click="currentStep = 'passport'"
+				@click="$refs.stepper.previous()"
 			>
 			  К предыдущему шагу
 			</q-btn>
@@ -585,7 +700,8 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="indigo-4"
-				@click="currentStep = 'finish'"
+
+				@click=" validateForm( $refs.thirdStepForm, 'certificate' ) "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -597,69 +713,96 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 			title="Выбор специальности"
 			name="finish"
 			icon="checklist"
+
+			:done="validation.finish.isDone"
+			:error="validation.finish.isError"
 		>
 
-		  <div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+		  <q-form>
 
-			<q-select
-				class="col"
-				label="Специальность"
-				no-error-icon
-				:rules="[ v => !!v.length || '* обязательное поле' ]"
-				v-model="selectedSpecializations"
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
 
-				:options="specializations"
-				option-label="name"
-				option-value="shortName"
-				emit-value
+			  <q-select
+				  class="col"
+				  label="Специальность"
+				  no-error-icon
+				  :rules="[ v => !!v.length || '* обязательное поле' ]"
+				  v-model="selectedSpecializations"
 
-				clearable
-				clear-icon="clear"
-				counter
-				multiple
-				use-chips
-				use-input
+				  :options="specializations"
+				  option-label="name"
+				  option-value="shortName"
+				  emit-value
 
-				:disable="loading.specializations"
-				:loading="loading.specializations"
-			/>
+				  clearable
+				  clear-icon="clear"
+				  counter
+				  multiple
+				  use-chips
+				  use-input
 
-			<q-select
-				class="col"
-				label="Социальный статус"
-				v-model="selectedSocialStatus"
+				  :disable="loading.specializations"
+				  :loading="loading.specializations"
+			  />
 
-				:options="socialStatuses"
-				option-value="statusID"
-				option-label="title"
+			  <q-select
+				  class="col"
+				  label="Социальный статус"
+				  v-model="selectedSocialStatuses"
 
-				clearable
-				clear-icon="clear"
-				counter
-				multiple
-				use-chips
-				use-input
+				  :options="socialStatuses"
+				  option-value="statusID"
+				  option-label="title"
 
-				:disable="loading.socialStatuses"
-				:loading="loading.socialStatuses"
-			/>
+				  clearable
+				  clear-icon="clear"
+				  counter
+				  multiple
+				  use-chips
+				  use-input
 
-			<q-toggle
-				class="col-auto"
-				v-model="dormitory"
-				label="Мне нужно общежитие"
-				checked-icon="check"
-				color="green"
-				unchecked-icon="clear"
-			/>
-		  </div>
+				  :disable="loading.socialStatuses"
+				  :loading="loading.socialStatuses"
+			  />
+
+			  <q-toggle
+				  class="col-auto"
+				  v-model="dormitory"
+				  label="Мне нужно общежитие"
+				  checked-icon="check"
+				  color="green"
+				  unchecked-icon="clear"
+			  />
+			</div>
+
+			<div class="q-mt-md row">
+			  <q-uploader
+				  class="col q-mt-none"
+				  label="Дополнительные файлы"
+				  hide-upload-btn
+				  multiple
+				  max-files="7"
+				  square
+				  flat
+				  color="indigo-4"
+				  accept="image/*"
+
+				  @added=" ( files ) => extraFiles.push( files ) "
+				  @removed=" ( files ) => extraFiles.splice( extraFiles.findIndex( p => p === files[0] ), 1 ) "
+			  />
+			</div>
+			<div class="text-grey text-caption">* <a href="#" @click="extraFilesDialog = true">Какие
+			  файлы можно прикрепить?</a>
+			</div>
+
+		  </q-form>
 
 		  <q-stepper-navigation class="row q-gutter-md">
 			<q-btn
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="red-4"
-				@click="currentStep = 'certificate'"
+				@click="$refs.stepper.previous()"
 			>
 			  К предыдущему шагу
 			</q-btn>
@@ -678,6 +821,71 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 
 	</q-card-section>
   </q-card>
+
+  <q-dialog v-model="extraFilesDialog" square>
+	<q-card>
+	  <q-card-section>
+		<div class="text-overline">Извлечение из правил приема</div>
+	  </q-card-section>
+	  <q-card-section class="q-py-none">
+		<p class="text-caption">
+		  31. При приеме на обучение по образовательным программам приёмной комиссией
+		  учитываются результаты индивидуальных достижений в следующем порядке:
+		</p>
+		<p class="text-caption">
+		  - наличие статуса победителя и призера в олимпиадах и иных интеллектуальных
+		  мероприятиях, направленных на развитие интереса к научной (научно-исследовательской),
+		  инженерно-технической, изобретательской, а также на пропаганду научных знаний, в соответствии
+		  с постановлением Правительства Российской Федерации от 17 ноября 2015 г. N 1239 "Об
+		  утверждении Правил выявления детей, проявивших выдающиеся способности, сопровождения и
+		  мониторинга их дальнейшего развития" (Собрание законодательства Российской Федерации, 2015,
+		  N 47, ст. 6602; 2016, N 20, ст. 2837; 2017, N 28, ст. 4134; N 50, ст. 7633; 2018, N
+		  46, ст. 7061);
+		</p>
+		<p class="text-caption">
+		  - наличие у поступающего статуса победителя и призера чемпионата профессионального
+		  мастерства, проводимого союзом "Агентство развития профессиональных сообществ и рабочих
+		  кадров "Молодые профессионалы (Ворлдскиллс Россия)" либо международной организацией
+		  "WorldSkills International";
+		</p>
+		<p class="text-caption">
+		  - наличие статуса победителя или призера чемпионата профессионального мастерства,
+		  проводимого международной организацией «Ворлдскиллс Европа» (WorldSkills Europe);
+		</p>
+		<p class="text-caption">
+		  - наличие у поступающего статуса победителя и призера чемпионата по профессиональному
+		  мастерству среди инвалидов и лиц с ограниченными возможностями здоровья "Абилимпикс";
+		</p>
+		<p class="text-caption">
+		  - наличие статуса чемпиона или призера Олимпийских, Паралимпийских и Сурдолимпийских
+		  игр, чемпиона мира или Европы. Учитывается наличие первого места на первенствах мира или
+		  Европы по различным видам спорта;
+		</p>
+		<p class="text-caption">
+		  - наличие статуса победителя и призера в олимпиадах и мероприятиях, направленных на
+		  развитие творческих способностей, способностей к занятиям физической культурой и спортом,
+		  творческой, физкультурно-спортивной деятельности, имеющих знак ГТО, а также на пропаганду
+		  научных знаний, творческих и спортивных достижений в соответствии с постановлением
+		  Правительства Российской Федерации от 17 ноября 2015 г. N 1239 "Об утверждении Правил
+		  выявления детей, проявивших выдающиеся способности, сопровождения и мониторинга их
+		  дальнейшего развития" (Собрание законодательства Российской Федерации, 2015, N 47, ст. 6602;
+		  2016, N 20, ст. 2837; 2017, N 28, ст. 4134; N 50, ст. 7633; 2018, N 46, ст. 7061);
+		</p>
+		<p class="text-caption">
+		  - сертификат АПОУ ВО «Вологодский колледж связи и информационных технологий» об
+		  освоении обучающимися дополнительной общеобразовательной общеразвивающей программы
+		  технической направленности;
+		</p>
+		<p class="text-caption">
+		  - документ подтверждающий участие в добровольческой деятельности.
+		</p>
+	  </q-card-section>
+	  <q-card-actions class="q-pt-none">
+		<q-btn class="full-width" v-close-popup flat color="red-4">Закрыть</q-btn>
+	  </q-card-actions>
+	</q-card>
+  </q-dialog>
+
 </template>
 
 <style lang="scss" scoped>
