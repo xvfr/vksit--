@@ -8,7 +8,8 @@ import RatingView from '../views/rating-view.vue'
 const
 	AbiturientsView = () => import( '../views/abiturients-view.vue' ),
 	AbiturientView = () => import( '../views/abiturient-view.vue' ),
-	LoginView = () => import( '../views/login-view.vue' )
+	LoginView = () => import( '../views/login-view.vue' ),
+	StatisticsView = () => import( '../views/statistics-view.vue' )
 
 // router
 
@@ -52,6 +53,11 @@ const router = createRouter( {
 			path : '/rating',
 			name : 'rating',
 			component : RatingView
+		},
+		{
+			path : '/statistics',
+			name : 'statistics',
+			component : StatisticsView
 		}
 	]
 
