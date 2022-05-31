@@ -19,6 +19,13 @@ const
 			sortable : true
 		},
 		{
+			name : 'status',
+			label : 'Статус',
+			align : 'center',
+
+			sortable : true
+		},
+		{
 			name : 'fullName',
 			label : 'ФИО',
 			field : 'fullName',
@@ -49,21 +56,11 @@ const
 		{
 			name : 'actions',
 			label : 'Действия',
-			align : 'right'
+			align : 'center'
 		}
 	],
 
-	abiturients = ref<object[]>([])
-
-// for ( let i = 1; i < 25; i++ ) {
-// 	rows.push( {
-// 		statementID : i,
-// 		fullName : `${ faker.name.firstName() } ${ faker.name.lastName() } ${ faker.name.middleName() }`,
-// 		createdAt : new Date( faker.date.past() ).toLocaleDateString(),
-// 		phoneNumber : faker.phone.phoneNumber( '+7 (9##) ### ##-##' ),
-// 		email : faker.internet.email()
-// 	} )
-// }
+	abiturients = ref<object[]>( [] )
 
 ;( async () => {
 
@@ -129,14 +126,22 @@ const
 		<template v-slot:body-cell-abiturientID="props">
 		  <q-td key="statementID" :props="props">
 			<!--	TODO :: customize link	or router-link use	-->
-			<a @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" class="cursor-pointer">{{ props.row.abiturientID }}</a>
+			<a href="#" @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )"
+			   class="cursor-pointer">{{ props.row.abiturientID }}</a>
+		  </q-td>
+		</template>
+
+		<template v-slot:body-cell-status="props">
+		  <q-td key="status" :props="props">
+			<q-badge outline align="middle" color="warning">
+			  На рассмотрении
+			</q-badge>
 		  </q-td>
 		</template>
 
 		<template v-slot:body-cell-actions="props">
 		  <q-td key="actions" :props="props">
 			<q-btn-group flat>
-			  <q-btn flat round color="green-5" icon="check" size="sm" />
 			  <q-btn flat round color="primary" icon="edit" size="sm" />
 			  <q-btn flat round color="red-5" icon="delete" size="sm" />
 			</q-btn-group>
@@ -147,7 +152,7 @@ const
 
 	</q-card-section>
 
-	<router-view></router-view>
+	<router-view />
 
   </q-card>
 </template>

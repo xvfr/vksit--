@@ -518,7 +518,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 			  <q-input
 				  class="col-2"
 				  v-model="passportCode"
-				  label="Номер"
+				  label="Код подразделения"
 				  mask="###-###"
 				  unmasked-value
 				  fill-mask="_"
