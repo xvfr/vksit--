@@ -92,7 +92,6 @@ const
 	possibleEndSchoolYears = Array( 5 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i ),
 
 	specializations = ref<object[]>( [] ),
-
 	socialStatuses = ref( [
 		{
 			statusID : -1,
@@ -114,7 +113,8 @@ const
 			groups = items.map( ( e : any ) => ( {
 				groupID : e.group_id,
 				name : e.name,
-				shortName : e.short_name
+				shortName : e.short_name,
+				isPaid : e.is_paid
 			} ) )
 
 		specializations.value.push( ...groups )
@@ -160,9 +160,19 @@ const
 
 } )()
 
-watch( currentStep, ( step ) => localStorage.currentStep = step )
+// filters
 
-// pre-valid mask
+const
+	groupsCache = specializations.value,
+	statusesCache = socialStatuses.value
+
+const
+	filterSpecializations = ( val : any, update : any, abort : any ) =>
+		update( () => specializations.value = groupsCache.filter( ( v : any ) => v.name.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) ),
+	filterSocialStatuses = ( val : any, update : any, abort : any ) =>
+		update( () => socialStatuses.value = statusesCache.filter( ( v : any ) => v.title.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) )
+
+// watchers
 
 watch( lastName, ( value ) =>
 	nextTick( () => {
@@ -172,21 +182,21 @@ watch( lastName, ( value ) =>
 	} )
 )
 
-watch( firstName, ( value ) => {
+watch( firstName, ( value ) =>
 	nextTick( () => {
 		value && ( firstName.value = value
 			.replace( /[^А-ЯЁёа-я]*/g, '' )
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
-} )
+)
 
-watch( middleName, ( value ) => {
+watch( middleName, ( value ) =>
 	nextTick( () => {
 		value && ( middleName.value = value
 			.replace( /[^А-ЯЁёа-я]*/g, '' )
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
-} )
+)
 
 watch( passportAddressEqual, () => passportAddress.value = address.value )
 
@@ -255,6 +265,8 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 // save values to localstorage
 
 const toggleLocalStorage = ( target : string, value : any ) => value ? localStorage[ target ] = String( value ) : delete localStorage[ target ]
+
+watch( currentStep, ( step ) => localStorage.currentStep = step )
 
 watch( lastName, ( value ) => toggleLocalStorage( 'lastName', value ) )
 watch( firstName, ( value ) => toggleLocalStorage( 'firstName', value ) )
@@ -766,6 +778,10 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  option-value="shortName"
 				  emit-value
 
+				  behavior="dialog"
+
+				  @filter="filterSpecializations"
+
 				  clearable
 				  clear-icon="clear"
 				  counter
@@ -785,6 +801,10 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  :options="socialStatuses"
 				  option-value="statusID"
 				  option-label="title"
+
+				  behavior="dialog"
+
+				  @filter="filterSocialStatuses"
 
 				  counter
 				  multiple

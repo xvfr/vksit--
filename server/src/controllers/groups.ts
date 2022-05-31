@@ -8,7 +8,7 @@ groupsRouter.get( '/', async ( req, res, next ) => {
 
 	const
 		groups = await db( 'groups' )
-			.select( 'group_id', 'name', 'short_name' )
+			.select( 'group_id', 'name', 'short_name', 'is_paid' )
 
 	res.send( { items : groups } )
 
