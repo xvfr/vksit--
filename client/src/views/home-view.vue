@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 
@@ -7,53 +7,55 @@ const
 	$q = useQuasar(),
 	currentStep = ref( localStorage.currentStep || 'aboutMe' ),
 	loading = reactive( {
-		page : false,
 		specializations : true,
 		socialStatuses : true
 	} ),
 
 	// 1 step
 
-	firstName = ref<null | string>( null ),
-	lastName = ref<null | string>( null ),
-	middleName = ref<null | string>( null ),
-	birthDate = ref<null | string>( null ),
-	address = ref<null | string>( null ),
-	phoneNumber = ref<null | string>( null ),
-	email = ref<null | string>( null ),
-	photo = ref<object[]>( [] ),
+	firstName = ref<null | string>( localStorage.firstName || null ),
+	lastName = ref<null | string>( localStorage.lastName || null ),
+	middleName = ref<null | string>( localStorage.middleName || null ),
+	birthDate = ref<null | string>( localStorage.birthDate || null ),
+	address = ref<null | string>( localStorage.address || null ),
+	phoneNumber = ref<null | string>( localStorage.phoneNumber || null ),
+	email = ref<null | string>( localStorage.email || null ),
+	photo = reactive<object[]>( [] ),
 
 	// 2 step
 
-	passportSeries = ref<null | number>( null ),
-	passportNumber = ref<null | number>( null ),
-	passportIssuedDate = ref<null | string>( null ),
-	passportIssuedBy = ref<null | string>( null ),
-	passportAddress = ref<null | string>( null ),
+	passportSeries = ref<null | number>( localStorage.passportSeries || null ),
+	passportNumber = ref<null | number>( localStorage.passportNumber || null ),
+	passportIssuedDate = ref<null | string>( localStorage.passportIssuedDate || null ),
+	passportIssuedBy = ref<null | string>( localStorage.passportIssuedBy || null ),
+	passportAddress = ref<null | string>( localStorage.passportAddress || null ),
 	passportAddressEqual = ref( false ),
-	passportCode = ref<null | string>( null ),
-	passportScan = ref<object[]>( [] ),
+	passportCode = ref<null | string>( localStorage.passportCode || null ),
+	passportScan = reactive<object[]>( [] ),
 
 	// 3 step
 
-	certificateNumber = ref<null | number>( null ),
-	schoolName = ref<null | string>( null ),
-	endSchoolYear = ref<null | number>( null ),
-	marks = reactive( {
+	certificateNumber = ref<null | number>( localStorage.certificateNumber || null ),
+	schoolName = ref<null | string>( localStorage.schoolName || null ),
+	endSchoolYear = ref<null | number>( localStorage.endSchoolYear || null ),
+	marks = reactive( localStorage.marks ? JSON.parse( localStorage.marks ) : {
 		math : null,
 		physics : null,
 		informatics : null,
 		foreign : null,
 		russian : null
 	} ),
-	certificateScan = ref<object[]>( [] ),
+	certificateScan = reactive<object[]>( [] ),
 
 	// 4 step
 
-	selectedSpecializations = ref<null | object[]>( [] ),
-	selectedSocialStatuses = ref<null | object[]>( [ { statusID : -1, title : 'Нет' } ] ),
-	dormitory = ref<null | boolean>( false ),
-	extraFiles = ref<object[]>( [] ),
+	selectedSpecializations = ref<null | object[]>( localStorage.selectedSpecializations ? JSON.parse( localStorage.selectedSpecializations ) : [] ),
+	selectedSocialStatuses = ref<null | object[]>( localStorage.selectedSocialStatuses ? JSON.parse( localStorage.selectedSocialStatuses ) : [ {
+		statusID : -1,
+		title : 'Нет'
+	} ] ),
+	dormitory = ref<null | boolean>( localStorage.dormitory || false ),
+	extraFiles = reactive<object[]>( [] ),
 	extraFilesDialog = ref( false ),
 
 	// other
@@ -190,6 +192,9 @@ watch( passportAddressEqual, () => passportAddress.value = address.value )
 
 watch( selectedSocialStatuses, ( value ) => {
 
+	if ( value?.length === 0 )
+		return selectedSocialStatuses.value = [ { statusID : -1, title : 'Нет' } ]
+
 	if ( !value || value.length <= 1 )
 		return
 
@@ -247,11 +252,40 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 
 }
 
+// save values to localstorage
+
+const toggleLocalStorage = ( target : string, value : any ) => value ? localStorage[ target ] = String( value ) : delete localStorage[ target ]
+
+watch( lastName, ( value ) => toggleLocalStorage( 'lastName', value ) )
+watch( firstName, ( value ) => toggleLocalStorage( 'firstName', value ) )
+watch( middleName, ( value ) => toggleLocalStorage( 'middleName', value ) )
+watch( birthDate, ( value ) => toggleLocalStorage( 'birthDate', value ) )
+watch( address, ( value ) => toggleLocalStorage( 'address', value ) )
+watch( phoneNumber, ( value ) => toggleLocalStorage( 'phoneNumber', value ) )
+watch( email, ( value ) => toggleLocalStorage( 'email', value ) )
+
+watch( passportSeries, ( value ) => toggleLocalStorage( 'passportSeries', value ) )
+watch( passportNumber, ( value ) => toggleLocalStorage( 'passportNumber', value ) )
+watch( passportIssuedDate, ( value ) => toggleLocalStorage( 'passportIssuedDate', value ) )
+watch( passportIssuedBy, ( value ) => toggleLocalStorage( 'passportIssuedBy', value ) )
+watch( passportAddress, ( value ) => toggleLocalStorage( 'passportAddress', value ) )
+watch( passportCode, ( value ) => toggleLocalStorage( 'passportCode', value ) )
+
+watch( certificateNumber, ( value ) => toggleLocalStorage( 'certificateNumber', value ) )
+watch( schoolName, ( value ) => toggleLocalStorage( 'schoolName', value ) )
+watch( endSchoolYear, ( value ) => toggleLocalStorage( 'endSchoolYear', value ) )
+watch( marks, ( value ) => toggleLocalStorage( 'marks', JSON.stringify( value ) ) )
+
+watch( selectedSpecializations, ( value ) => toggleLocalStorage( 'selectedSpecializations', JSON.stringify( value ) ) )
+watch( selectedSocialStatuses, ( value ) => toggleLocalStorage( 'selectedSocialStatuses', JSON.stringify( value ) ) )
+watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
+
 </script>
 
 <template>
   <q-card square class="application-form">
 	<q-card-section>
+
 	  <div class="text-overline">Подача заявления</div>
 
 	  <q-stepper
@@ -276,8 +310,6 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 			:done="validation.aboutMe.isDone"
 			:error="validation.aboutMe.isError"
 		>
-
-		  <!--		todo :: add form for validate step		-->
 
 		  <q-form ref="firstStepForm">
 
@@ -754,8 +786,6 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 				  option-value="statusID"
 				  option-label="title"
 
-				  clearable
-				  clear-icon="clear"
 				  counter
 				  multiple
 				  use-chips
@@ -772,7 +802,9 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 				  checked-icon="check"
 				  color="green"
 				  unchecked-icon="clear"
+				  true-value="true"
 			  />
+
 			</div>
 
 			<div class="q-mt-md row">
@@ -791,8 +823,8 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 				  @removed=" ( files ) => extraFiles.splice( extraFiles.findIndex( p => p === files[0] ), 1 ) "
 			  />
 			</div>
-			<div class="text-grey text-caption">* <a href="#" @click="extraFilesDialog = true">Какие
-			  файлы можно прикрепить?</a>
+			<div class="text-blue-5 cursor-pointer text-caption" @click="extraFilesDialog = true">Какие файлы можно
+			  прикрепить?
 			</div>
 
 		  </q-form>
@@ -825,7 +857,7 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
   <q-dialog v-model="extraFilesDialog" square>
 	<q-card>
 	  <q-card-section>
-		<div class="text-overline">Извлечение из правил приема</div>
+		<div class="text-overline">Извлечение из правил приема 2022 - 2023 уч. г.</div>
 	  </q-card-section>
 	  <q-card-section class="q-py-none">
 		<p class="text-caption">

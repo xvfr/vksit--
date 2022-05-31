@@ -6,7 +6,7 @@ import 'dotenv/config'
 
 // controllers
 
-import abiturientsRouter from './controllers/applications'
+import abiturientsRouter from './controllers/abiturients'
 import groupsRouter from './controllers/groups'
 import socialStatusesRouter from './controllers/social-statuses'
 
