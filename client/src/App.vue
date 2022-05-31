@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import NavigationRoutes from '@/components/navigation-routes.vue'
 
 const
 	drawer = ref( false )
@@ -24,8 +25,7 @@ const
 		</q-toolbar-title>
 
 		<q-tabs class="gt-sm">
-		  <q-route-tab to="/" label="Подача заявления" />
-		  <q-route-tab to="rating" label="Рейтинг абитуриентов" />
+		  <navigation-routes />
 		</q-tabs>
 
 		<q-btn to="login" flat round dense icon="done" class="q-ml-sm" />
@@ -34,8 +34,7 @@ const
 
 	<q-drawer v-model="drawer">
 		<q-tabs vertical class="text-grey-6" active-color="indigo-4">
-		  <q-route-tab to="/" label="Подача заявления" />
-		  <q-route-tab to="rating" label="Рейтинг абитуриентов" />
+			<navigation-routes />
 		</q-tabs>
 	</q-drawer>
 
