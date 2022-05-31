@@ -73,7 +73,14 @@ const
 	try {
 
 		const
-			{ data : { groups } } = await api.get( 'groups' )
+			{ data : { items } } = await api.get( 'groups' ),
+
+			groups = items.map( ( e : any ) => ( {
+				groupID : e.group_id,
+				name : e.name,
+				shortName : e.short_name,
+				isPaid : e.is_paid
+			} ) )
 
 		specializations.value.push( ...groups )
 		loading.specializations = false
