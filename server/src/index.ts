@@ -9,6 +9,7 @@ import 'dotenv/config'
 import abiturientsRouter from './controllers/abiturients'
 import groupsRouter from './controllers/groups'
 import socialStatusesRouter from './controllers/social-statuses'
+import disciplinesRouter from './controllers/disciplines'
 
 // app
 
@@ -22,6 +23,7 @@ app.use( cors() )
 app.use( '/api/abiturients', abiturientsRouter )
 app.use( '/api/groups', groupsRouter )
 app.use( '/api/social-statuses', socialStatusesRouter )
+app.use( '/api/disciplines', disciplinesRouter )
 
 // errors check
 //noinspection JSUnusedLocalSymbols

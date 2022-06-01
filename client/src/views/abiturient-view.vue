@@ -2,6 +2,7 @@
 import { nextTick, reactive, ref, unref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { laGofore } from '@quasar/extras/line-awesome'
+import api from '@/api'
 
 const
 	$route = useRoute(),
@@ -30,6 +31,7 @@ const
 	passportAddressEqual = ref( false ),
 	passportCode = ref<null | string>( null ),
 	passportScan = reactive<object[]>( [] ),
+	passportScanRef = ref(),
 
 	certificateNumber = ref<null | number>( null ),
 	schoolName = ref<null | string>( null ),
@@ -42,11 +44,13 @@ const
 		russian : null
 	} ),
 	certificateScan = reactive<object[]>( [] ),
+	certificateScanRef = ref(),
 
 	selectedSpecializations = ref<null | object[]>( [] ),
 	selectedSocialStatuses = ref<null | object[]>( [] ),
 	dormitory = ref<null | boolean>( false ),
 	extraFiles = reactive<object[]>( [] ),
+	extraFilesRef = ref(),
 
 	specializations = ref<object[]>( [] ),
 	socialStatuses = ref( [
@@ -55,6 +59,12 @@ const
 			title : 'Нет'
 		}
 	] ),
+	marksList = ref<object[]>( [] ),
+	statements = ref<any[]>( [] ),
+	originalCertificateStatement = ref( null ),
+	originalCertificateExists = ref( false ),
+
+	status = ref<object | null>( null ),
 
 	rules = {
 		required : ( v : string ) => !!v || '* обязательное поле',
@@ -88,6 +98,48 @@ const
 //
 // } )()
 
+// load abiturient
+
+;( async () => {
+
+	try {
+
+		const { data : { items : [ response ] } } = await api( 'abiturients/' + abiturientID )
+
+		firstName.value = response.abiturient.first_name
+		lastName.value = response.abiturient.last_name
+		middleName.value = response.abiturient.middle_name
+		birthDate.value = new Date( response.abiturient.birth_date ).toLocaleDateString( 'en-ca' )
+		address.value = response.abiturient.address
+		phoneNumber.value = response.abiturient.phone
+		email.value = response.abiturient.email
+
+		passportSeries.value = response.passport.series
+		passportNumber.value = response.passport.number
+		passportIssuedDate.value = new Date( response.passport.issued_date ).toLocaleDateString( 'en-ca' )
+		passportIssuedBy.value = response.passport.issued_by
+		passportCode.value = response.passport.code
+		passportAddress.value = response.passport.registration_address
+
+		certificateNumber.value = response.certificate.number
+		schoolName.value = response.certificate.school_name
+		endSchoolYear.value = response.certificate.end_school_year
+
+		statements.value = response.statements
+
+		originalCertificateStatement.value = statements.value?.find( s => s.original_certificate )?.statement_id
+
+		if ( originalCertificateStatement.value )
+			originalCertificateExists.value = true
+
+		status.value = response.abiturient.status
+
+	} catch {
+		errors.exists = true
+	}
+
+} )()
+
 </script>
 
 <template>
@@ -100,10 +152,7 @@ const
   >
 
 	<q-banner inline-actions class="text-white bg-red-4" v-if="errors.exists" style="width: auto !important;">
-	  Не удалось найти выбранного абитуриента
-	  <template v-slot:action>
-		<q-btn flat color="white" label="Попробовать еще раз" @click="$router.go" />
-	  </template>
+	  <b class="text-overline">Ошибка!</b> <span class="text-caption">Не удалось найти выбранного абитуриента, попробуйте вернуться и обновить страницу</span>
 	</q-banner>
 
 	<q-card class="edit-abiturient" v-else>
@@ -111,8 +160,19 @@ const
 	  <q-card-section class="flex">
 		<div class="text-overline">Редактирование абитуриента</div>
 		<q-space />
-		<q-badge outline align="middle" color="warning">
-		  На рассмотрении
+		<q-badge v-if="status" outline align="middle" :color="status.color">
+		  {{ status.title }}
+
+		  <q-btn-group flat class="q-ml-xs">
+			<q-btn icon="more_vert" flat round size="xs" />
+
+			<q-menu cover transition-show="scale" transition-hide="scale" square max-width="15rem">
+			  <q-btn flat color="positive" class="full-width text-caption" size="sm">Одобрено</q-btn>
+			  <q-btn flat color="warning" class="full-width text-caption" size="sm">На рассмотрении</q-btn>
+			  <q-btn flat color="primary" class="full-width text-caption" size="sm">Необходимо редактирование</q-btn>
+			  <q-btn flat color="negative" class="full-width text-caption" size="sm">Отклонено</q-btn>
+			</q-menu>
+		  </q-btn-group>
 		</q-badge>
 	  </q-card-section>
 
@@ -128,6 +188,8 @@ const
 			active-icon="none"
 			vertical
 		>
+
+		  <!--			About			-->
 
 		  <q-step title="Основная информация"
 				  name="aboutMe"
@@ -236,14 +298,21 @@ const
 				  color="indigo-4"
 				  accept="image/*"
 
+				  ref="photoRef"
+
 				  @added=" ( files ) => photo.push( files ) "
 				  @removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
 			  />
+
+			  <!--			  TODO :: change file preview			-->
+
 			</div>
 
-			<q-btn outline dense class="full-width" color="green-4">Сохранить</q-btn>
+			<q-btn outline dense class="full-width q-mt-sm" color="green-4">Сохранить</q-btn>
 
 		  </q-step>
+
+		  <!--			Passport			-->
 
 		  <q-step
 			  title="Паспортные данные"
@@ -351,7 +420,7 @@ const
 			<div class="q-mt-md row">
 			  <q-uploader
 				  class="col q-mt-none"
-				  label="Скан"
+				  label="Сканы паспорта"
 				  hide-upload-btn
 				  multiple
 				  max-files="4"
@@ -360,12 +429,18 @@ const
 				  color="indigo-4"
 				  accept="image/*"
 
+				  ref="passportScanRef"
+
 				  @added=" ( files ) => passportScan.push( ...files ) "
 				  @removed=" ( files ) => passportScan.splice( passportScan.findIndex( p => p === files[0] ), 1 ) "
 			  />
 			</div>
 
+			<q-btn outline dense class="full-width q-mt-sm" color="green-4">Сохранить</q-btn>
+
 		  </q-step>
+
+		  <!--			Certificate			-->
 
 		  <q-step
 			  title="Аттестат"
@@ -409,68 +484,28 @@ const
 			  />
 			</div>
 
-			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'" v-if="marksList.length">
+
 			  <q-input
+				  v-for="mark in marksList"
 				  class="col"
-				  v-model.number="marks.math"
-				  label="Оценка по математике"
+				  v-model.number="marks[mark.discipline_id]"
+				  :label="mark.title"
 				  mask="#"
 				  fill-mask="_"
 				  clearable
 				  clear-icon="clear"
 				  no-error-icon
 				  :rules="[ rules.required, rules.mark ]"
+				  hint="Оценка по предмету"
 			  />
-			  <q-input
-				  class="col"
-				  v-model.number="marks.physics"
-				  label="Оценка по физике"
-				  mask="#"
-				  fill-mask="_"
-				  clearable
-				  clear-icon="clear"
-				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
-			  />
-			  <q-input
-				  class="col"
-				  v-model.number="marks.informatics"
-				  label="Оценка по информатике"
-				  mask="#"
-				  fill-mask="_"
-				  clearable
-				  clear-icon="clear"
-				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
-			  />
-			  <q-input
-				  class="col"
-				  v-model.number="marks.foreign"
-				  label="Оценка по иностранному языку"
-				  mask="#"
-				  fill-mask="_"
-				  clearable
-				  clear-icon="clear"
-				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
-			  />
-			  <q-input
-				  class="col"
-				  v-model.number="marks.russian"
-				  label="Оценка по русскому языку"
-				  mask="#"
-				  fill-mask="_"
-				  clearable
-				  clear-icon="clear"
-				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
-			  />
+
 			</div>
 
 			<div class="q-mt-md row">
 			  <q-uploader
 				  class="col q-mt-none"
-				  label="Скан"
+				  label="Сканы аттестата"
 				  hide-upload-btn
 				  multiple
 				  max-files="3"
@@ -479,12 +514,18 @@ const
 				  color="indigo-4"
 				  accept="image/*"
 
+				  ref="certificateScanRef"
+
 				  @added=" ( files ) => certificateScan.push( files ) "
 				  @removed=" ( files ) => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 ) "
 			  />
 			</div>
 
+			<q-btn outline dense class="full-width q-mt-sm" color="green-4">Сохранить</q-btn>
+
 		  </q-step>
+
+		  <!--			Specializations			-->
 
 		  <q-step
 			  title="Выбор специальности"
@@ -551,12 +592,74 @@ const
 				  color="indigo-4"
 				  accept="image/*"
 
+				  ref="extraFilesRef"
+
 				  @added=" ( files ) => extraFiles.push( files ) "
 				  @removed=" ( files ) => extraFiles.splice( extraFiles.findIndex( p => p === files[0] ), 1 ) "
 			  />
 			</div>
 
+			<q-btn outline dense class="full-width q-mt-sm" color="green-4">Сохранить</q-btn>
+
 		  </q-step>
+
+		  <!--			Statements			-->
+
+		  <q-step
+			  title="Заявления"
+			  name="statements"
+			  icon="assignment"
+		  >
+
+			<q-toggle
+				v-model="originalCertificateExists"
+				checked-icon="check"
+				color="primary"
+				unchecked-icon="clear"
+			>
+			  Есть оригинал аттестата
+			</q-toggle>
+
+			<q-list bordered>
+
+			  <q-item v-for="statement of statements">
+
+				<q-item-section>
+				  <q-item-label overline><b>#{{ statement.statement_id }}</b></q-item-label>
+				  <q-item-label caption>{{ statement.created_at }}</q-item-label>
+				</q-item-section>
+
+				<q-item-section>
+				  Group : {{ statement.group_id }}
+
+				  <q-badge floating>{{ statement.average_score }}</q-badge>
+				</q-item-section>
+
+				<q-item-section side>
+				  <div class="text-grey-8 q-gutter-xs">
+					<q-btn-group flat>
+					  <q-btn size="sm" flat dense round icon="print" />
+					  <q-btn size="sm" flat dense round icon="delete" />
+					</q-btn-group>
+
+					<q-radio
+						size="xs"
+						label="Оригинал"
+						checked-icon="task_alt"
+						:val="statement.statement_id"
+						v-model="originalCertificateStatement"
+						:disable="!originalCertificateExists"
+					/>
+				  </div>
+				</q-item-section>
+
+			  </q-item>
+
+			</q-list>
+
+		  </q-step>
+
+		  <!--			Documents			-->
 
 		  <q-step
 			  title="Документы"
@@ -565,84 +668,18 @@ const
 		  >
 
 			<div class="text-grey text-caption">Заявление
-			  <q-icon name="open_in_new" />
+			  <q-icon name="download" />
 			</div>
 			<div class="text-grey text-caption">Согласие на обработку персональных данных
-			  <q-icon name="open_in_new" />
+			  <q-icon name="download" />
 			</div>
 			<div class="text-grey text-caption">Заявление на общежитие (optional)
-			  <q-icon name="open_in_new" />
+			  <q-icon name="download" />
 			</div>
 
 		  </q-step>
 
 		</q-stepper>
-
-		<!--		<div :class="$q.screen.lt.sm || 'row q-gutter-lg'" class="q-mt-md">
-							<q-uploader
-								class="col q-mt-none"
-								:class="$q.screen.gt.sm || 'full-width'"
-								label="Фото"
-								hide-upload-btn
-								square
-								flat
-								color="indigo-4"
-								accept="image/*"
-
-								ref="photoRef"
-
-								@added=" ( files ) => photo.push( files ) "
-								@removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
-							/>
-
-							<q-uploader
-								class="col q-mt-none"
-								:class="$q.screen.gt.sm || 'full-width'"
-								label="Сканы паспорта"
-								hide-upload-btn
-								multiple
-								max-files="4"
-								square
-								flat
-								color="indigo-4"
-								accept="image/*"
-
-								@added=" ( files ) => passportScan.push( ...files ) "
-								@removed=" ( files ) => passportScan.splice( passportScan.findIndex( p => p === files[0] ), 1 ) "
-							/>
-
-							<q-uploader
-								class="col q-mt-none"
-								:class="$q.screen.gt.sm || 'full-width'"
-								label="Сканы аттестата"
-								hide-upload-btn
-								multiple
-								max-files="3"
-								square
-								flat
-								color="indigo-4"
-								accept="image/*"
-
-								@added=" ( files ) => certificateScan.push( files ) "
-								@removed=" ( files ) => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 ) "
-							/>
-
-							<q-uploader
-								class="col q-mt-none"
-								:class="$q.screen.gt.sm || 'full-width'"
-								label="Дополнительные файлы"
-								hide-upload-btn
-								multiple
-								max-files="7"
-								square
-								flat
-								color="indigo-4"
-								accept="image/*"
-
-								@added=" ( files ) => extraFiles.push( files ) "
-								@removed=" ( files ) => extraFiles.splice( extraFiles.findIndex( p => p === files[0] ), 1 ) "
-							/>
-						</div>-->
 
 	  </q-card-section>
 

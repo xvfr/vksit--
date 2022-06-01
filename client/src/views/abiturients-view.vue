@@ -54,6 +54,12 @@ const
 			align : 'center'
 		},
 		{
+			name : 'comment',
+			label : 'Комментарий',
+			field : 'comment',
+			align : 'center'
+		},
+		{
 			name : 'actions',
 			label : 'Действия',
 			align : 'center'
@@ -75,7 +81,15 @@ const
 				fullName : `${ e.last_name } ${ e.first_name } ${ e.middle_name }`,
 				createdAt : new Date().toLocaleDateString(),
 				phoneNumber : e.phone,
-				email : e.email
+				email : e.email,
+
+				comment : e.comment,
+
+				status : {
+					id : e.status_id,
+					title : e.title,
+					color : e.color
+				}
 			} ) )
 
 		abiturients.value.push( ...formattedAbiturients )
@@ -126,23 +140,34 @@ const
 		<template v-slot:body-cell-abiturientID="props">
 		  <q-td key="statementID" :props="props">
 			<!--	TODO :: customize link	or router-link use	-->
-			<a href="#" @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )"
-			   class="cursor-pointer">{{ props.row.abiturientID }}</a>
+			<b @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )"
+			   class="cursor-pointer text-overline">{{ props.row.abiturientID }}</b>
 		  </q-td>
 		</template>
 
 		<template v-slot:body-cell-status="props">
 		  <q-td key="status" :props="props">
-			<q-badge outline align="middle" color="warning">
-			  На рассмотрении
+			<q-badge outline align="middle" :color="props.row.status.color">
+			  {{ props.row.status.title }}
 			</q-badge>
+		  </q-td>
+		</template>
+
+		<template #body-cell-comment="props">
+		  <q-td key="comment" :props="props">
+			{{ props.row.comment || '—' }}
+
+			<!--	TODO :: add save to db	-->
+			<q-popup-edit v-model="props.row.comment" auto-save v-slot="scope">
+			  <q-input v-model="scope.value" dense autofocus counter @keyup.enter="scope.set" />
+			</q-popup-edit>
 		  </q-td>
 		</template>
 
 		<template v-slot:body-cell-actions="props">
 		  <q-td key="actions" :props="props">
 			<q-btn-group flat>
-			  <q-btn flat round color="primary" icon="edit" size="sm" />
+			  <q-btn flat round color="primary" icon="edit" size="sm" @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" />
 			  <q-btn flat round color="red-5" icon="delete" size="sm" />
 			</q-btn-group>
 		  </q-td>

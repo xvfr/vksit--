@@ -8,7 +8,8 @@ const
 	currentStep = ref( localStorage.currentStep || 'aboutMe' ),
 	loading = reactive( {
 		specializations : true,
-		socialStatuses : true
+		socialStatuses : true,
+		marks : true
 	} ),
 
 	// 1 step
@@ -38,13 +39,7 @@ const
 	certificateNumber = ref<null | number>( localStorage.certificateNumber || null ),
 	schoolName = ref<null | string>( localStorage.schoolName || null ),
 	endSchoolYear = ref<null | number>( localStorage.endSchoolYear || null ),
-	marks = reactive( localStorage.marks ? JSON.parse( localStorage.marks ) : {
-		math : null,
-		physics : null,
-		informatics : null,
-		foreign : null,
-		russian : null
-	} ),
+	marks = reactive( localStorage.marks ? JSON.parse( localStorage.marks ) : [] ),
 	certificateScan = reactive<object[]>( [] ),
 
 	// 4 step
@@ -98,6 +93,7 @@ const
 			title : 'Нет'
 		}
 	] ),
+	marksList = ref<object[]>( [] ),
 
 	stepper = ref()
 
@@ -151,6 +147,32 @@ const
 		$q.notify( {
 			progress : true,
 			message : 'Не удалось загрузить список соц. статусов',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom-left'
+		} )
+
+	}
+
+	try {
+
+		const
+			{ data : { items } } = await api.get( 'disciplines' ),
+
+			disciplines = items.map( ( e : any ) => ( {
+				discipline_id : e.discipline_id,
+				title : e.name
+			} ) )
+
+		marksList.value.push( ...disciplines )
+		loading.marks = false
+
+	} catch ( e ) {
+
+		console.error( e )
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить список специальностей',
 			caption : 'Подробная информация в консоли',
 			type : 'warning',
 			position : 'bottom-left'
@@ -584,6 +606,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 
 		  <q-stepper-navigation class="row q-gutter-md">
 			<q-btn
+				class="gt-sm"
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="red-4"
@@ -652,61 +675,21 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 			</div>
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
+				  v-for="mark in marksList"
 				  class="col"
-				  v-model.number="marks.math"
-				  label="Оценка по математике"
+				  v-model.number="marks[mark.discipline_id]"
+				  :label="mark.title"
 				  mask="#"
 				  fill-mask="_"
 				  clearable
 				  clear-icon="clear"
 				  no-error-icon
 				  :rules="[ rules.required, rules.mark ]"
+				  hint="Оценка по предмету"
 			  />
-			  <q-input
-				  class="col"
-				  v-model.number="marks.physics"
-				  label="Оценка по физике"
-				  mask="#"
-				  fill-mask="_"
-				  clearable
-				  clear-icon="clear"
-				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
-			  />
-			  <q-input
-				  class="col"
-				  v-model.number="marks.informatics"
-				  label="Оценка по информатике"
-				  mask="#"
-				  fill-mask="_"
-				  clearable
-				  clear-icon="clear"
-				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
-			  />
-			  <q-input
-				  class="col"
-				  v-model.number="marks.foreign"
-				  label="Оценка по иностранному языку"
-				  mask="#"
-				  fill-mask="_"
-				  clearable
-				  clear-icon="clear"
-				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
-			  />
-			  <q-input
-				  class="col"
-				  v-model.number="marks.russian"
-				  label="Оценка по русскому языку"
-				  mask="#"
-				  fill-mask="_"
-				  clearable
-				  clear-icon="clear"
-				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
-			  />
+
 			</div>
 
 			<div class="q-mt-md row">
@@ -733,6 +716,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 
 		  <q-stepper-navigation class="row q-gutter-md">
 			<q-btn
+				class="gt-sm"
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="red-4"
@@ -851,6 +835,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 
 		  <q-stepper-navigation class="row q-gutter-md">
 			<q-btn
+				class="gt-sm"
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="red-4"
