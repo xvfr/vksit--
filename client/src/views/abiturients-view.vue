@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { provide, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 
@@ -66,7 +66,11 @@ const
 		}
 	],
 
-	abiturients = ref<object[]>( [] )
+	abiturients = ref<object[]>( [] ),
+
+	specializations = ref<object[]>( [] )
+
+provide( 'specializations', specializations )
 
 ;( async () => {
 
@@ -101,6 +105,35 @@ const
 		$q.notify( {
 			progress : true,
 			message : 'Не удалось загрузить список заявлений',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom-left'
+		} )
+
+	}
+
+	// groups
+
+	try {
+
+		const
+			{ data : { items } } = await api.get( 'groups' ),
+
+			groups = items.map( ( e : any ) => ( {
+				groupID : e.group_id,
+				name : e.name,
+				shortName : e.short_name,
+				isPaid : e.is_paid
+			} ) )
+
+		specializations.value.push( ...groups )
+
+	} catch ( e ) {
+
+		console.error( e )
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить список специальностей',
 			caption : 'Подробная информация в консоли',
 			type : 'warning',
 			position : 'bottom-left'
@@ -167,7 +200,8 @@ const
 		<template v-slot:body-cell-actions="props">
 		  <q-td key="actions" :props="props">
 			<q-btn-group flat>
-			  <q-btn flat round color="primary" icon="edit" size="sm" @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" />
+			  <q-btn flat round color="primary" icon="edit" size="sm"
+					 @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" />
 			  <q-btn flat round color="red-5" icon="delete" size="sm" />
 			</q-btn-group>
 		  </q-td>

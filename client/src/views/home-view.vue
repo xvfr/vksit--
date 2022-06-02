@@ -172,7 +172,7 @@ const
 		console.error( e )
 		$q.notify( {
 			progress : true,
-			message : 'Не удалось загрузить список специальностей',
+			message : 'Не удалось загрузить список дисциплин',
 			caption : 'Подробная информация в консоли',
 			type : 'warning',
 			position : 'bottom-left'
@@ -675,6 +675,8 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 			</div>
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
+			  <q-skeleton v-if="loading.marks" class="q-mt-xl q-mb-sm" square type="QInput" width="100%"></q-skeleton>
 
 			  <q-input
 				  v-for="mark in marksList"

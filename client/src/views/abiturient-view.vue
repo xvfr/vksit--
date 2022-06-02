@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, reactive, ref, unref, watch } from 'vue'
+import { inject, nextTick, reactive, ref, unref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { laGofore } from '@quasar/extras/line-awesome'
 import api from '@/api'
@@ -52,7 +52,7 @@ const
 	extraFiles = reactive<object[]>( [] ),
 	extraFilesRef = ref(),
 
-	specializations = ref<object[]>( [] ),
+	specializations = inject( 'specializations' ),
 	socialStatuses = ref( [
 		{
 			statusID : -1,
@@ -127,6 +127,9 @@ const
 
 		statements.value = response.statements
 
+		// TODO :: change view selected specializations
+		selectedSpecializations.value = response.statements.map( e => e.group_id )
+
 		originalCertificateStatement.value = statements.value?.find( s => s.original_certificate )?.statement_id
 
 		if ( originalCertificateStatement.value )
@@ -169,7 +172,8 @@ const
 			<q-menu cover transition-show="scale" transition-hide="scale" square max-width="15rem">
 			  <q-btn flat color="positive" class="full-width text-caption" size="sm">Одобрено</q-btn>
 			  <q-btn flat color="warning" class="full-width text-caption" size="sm">На рассмотрении</q-btn>
-			  <q-btn flat color="primary" class="full-width text-caption" size="sm">Необходимо редактирование</q-btn>
+			  <q-btn flat color="primary" class="full-width text-caption" size="sm" disable>Необходимо редактирование
+			  </q-btn>
 			  <q-btn flat color="negative" class="full-width text-caption" size="sm">Отклонено</q-btn>
 			</q-menu>
 		  </q-btn-group>
@@ -624,15 +628,13 @@ const
 
 			  <q-item v-for="statement of statements">
 
-				<q-item-section>
+				<q-item-section side>
 				  <q-item-label overline><b>#{{ statement.statement_id }}</b></q-item-label>
 				  <q-item-label caption>{{ statement.created_at }}</q-item-label>
 				</q-item-section>
 
-				<q-item-section>
-				  Group : {{ statement.group_id }}
-
-				  <q-badge floating>{{ statement.average_score }}</q-badge>
+				<q-item-section class="text-caption">
+				  {{ specializations.find( e => e.groupID === statement.group_id )?.name }}
 				</q-item-section>
 
 				<q-item-section side>
@@ -652,6 +654,8 @@ const
 					/>
 				  </div>
 				</q-item-section>
+
+				<q-badge floating>{{ statement.average_score }}</q-badge>
 
 			  </q-item>
 
