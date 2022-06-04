@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomeView from '../views/home-view.vue'
 import RatingView from '../views/rating-view.vue'
+import { useAuth } from '@/stores/auth'
 
 const
 	AbiturientsView = () => import( '../views/abiturients-view.vue' ),
@@ -29,7 +30,7 @@ const router = createRouter( {
 			component : AbiturientsView,
 
 			meta : {
-				isAuthorized : true
+				requiresAuth : true
 			},
 
 			children : [
@@ -46,7 +47,7 @@ const router = createRouter( {
 			component : LoginView,
 
 			meta : {
-				isAuthorized : false
+				requiresAuth : false
 			}
 		},
 		{
@@ -60,6 +61,19 @@ const router = createRouter( {
 			component : StatisticsView
 		}
 	]
+
+} )
+
+router.beforeEach( ( to, from ) => {
+
+	const
+		authStore = useAuth()
+
+	if ( to.meta.requiresAuth === false && authStore.isAuthorized )
+		return '/'
+
+	if ( to.meta.requiresAuth && !authStore.isAuthorized )
+		return router.push( { name : 'login', query : Object.assign( from.query , { redirect : to.name } ) } )
 
 } )
 

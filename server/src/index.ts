@@ -10,6 +10,7 @@ import abiturientsRouter from './controllers/abiturients'
 import groupsRouter from './controllers/groups'
 import socialStatusesRouter from './controllers/social-statuses'
 import disciplinesRouter from './controllers/disciplines'
+import staffRouter from './controllers/staff'
 
 // app
 
@@ -24,6 +25,7 @@ app.use( '/api/abiturients', abiturientsRouter )
 app.use( '/api/groups', groupsRouter )
 app.use( '/api/social-statuses', socialStatusesRouter )
 app.use( '/api/disciplines', disciplinesRouter )
+app.use( '/api/staff', staffRouter )
 
 // errors check
 //noinspection JSUnusedLocalSymbols

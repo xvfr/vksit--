@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
+import { useAuth } from '@/stores/auth'
+import { useRoute } from 'vue-router'
 
 const
+	$route = useRoute(),
+	authStore = useAuth(),
 	login = ref<string | null>( localStorage.login || null ),
-	password = ref<string | null>( null )
+	password = ref<string | null>( null ),
+
+	loading = reactive( {
+		auth : false
+	} )
 
 watch( login, ( value ) => !!value ? localStorage.login = value : delete localStorage.login )
+
+const authorize = async ( login: string, password : string, redirect: string | undefined ) => {
+
+	loading.auth = true
+	await authStore.authorize( login, password, redirect )
+	loading.auth = false
+
+}
 
 </script>
 
@@ -20,42 +36,53 @@ watch( login, ( value ) => !!value ? localStorage.login = value : delete localSt
 	  Вход в панель управления для администрации колледжа
 	</div>
 
-	<q-card-section>
+	<q-form @submit=" authorize( login, password, $route.query.redirect ) ">
 
-	  <div class="row q-gutter-md">
+	  <q-card-section>
 
-		<q-input
-			class="col"
-			v-model="login"
-			label="Логин / e-mail"
-			clearable
-			clear-icon="clear"
-		/>
+		<div :class="$q.screen.lt.sm || 'row q-gutter-md'">
 
-		<q-input
-			class="col"
-			v-model="password"
-			label="Пароль"
-			clearable
-			clear-icon="clear"
-			type="password"
-		/>
+		  <q-input
+			  class="col"
+			  v-model="login"
+			  label="Логин / e-mail"
+			  clearable
+			  clear-icon="clear"
 
-	  </div>
+			  :disable="loading.auth"
+		  />
 
-	</q-card-section>
-	<q-card-actions>
+		  <q-input
+			  class="col"
+			  v-model="password"
+			  label="Пароль"
+			  clearable
+			  clear-icon="clear"
+			  type="password"
 
-	  <q-btn
-		  class="full-width"
-		  color="indigo-4"
-		  outline
-		  :disable="!login || !password"
-	  >
-		Авторизоваться
-	  </q-btn>
+			  :disable="loading.auth"
+		  />
 
-	</q-card-actions>
+		</div>
+
+	  </q-card-section>
+	  <q-card-actions>
+
+		<q-btn
+			class="full-width"
+			color="indigo-4"
+			outline
+			:disable="!login || !password || loading.auth"
+			type="submit"
+		>
+		  Авторизоваться
+		</q-btn>
+
+	  </q-card-actions>
+
+	  <q-inner-loading :showing="loading.auth" color="primary" size="xl" />
+
+	</q-form>
 
   </q-card>
 </template>

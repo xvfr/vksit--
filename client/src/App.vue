@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import NavigationRoutes from '@/components/navigation-routes.vue'
+import { useAuth } from '@/stores/auth'
 
 const
+	authStore = useAuth(),
 	drawer = ref( false )
 
 </script>
@@ -28,14 +30,23 @@ const
 		  <navigation-routes />
 		</q-tabs>
 
-		<q-btn to="login" flat round dense icon="done" class="q-ml-sm" />
+		<q-btn
+			@click=" authStore.isAuthorized ? authStore.logout( $route.meta.requiresAuth ) : $router.push( { name : 'login' } ) "
+			flat
+			round
+			dense
+			:icon=" authStore.isAuthorized ? 'logout' : 'done' "
+			class="q-ml-sm"
+		>
+		  <q-tooltip>{{ authStore.isAuthorized ? 'Выйти' : 'Авторизоваться' }}</q-tooltip>
+		</q-btn>
 	  </q-toolbar>
 	</q-header>
 
 	<q-drawer v-model="drawer">
-		<q-tabs vertical class="text-grey-6" active-color="indigo-4">
-			<navigation-routes />
-		</q-tabs>
+	  <q-tabs vertical class="text-grey-6" active-color="indigo-4">
+		<navigation-routes />
+	  </q-tabs>
 	</q-drawer>
 
 	<q-page-container class="page-container">
