@@ -28,7 +28,7 @@ staffRouter.post( '/auth', async ( req, res, next ) => {
 		return res.sendStatus( 401 )
 
 	res.send( {
-		token
+		token : user
 	} )
 
 } )

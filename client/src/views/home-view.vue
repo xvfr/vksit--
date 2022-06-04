@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { nextTick, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 
@@ -95,7 +95,12 @@ const
 	] ),
 	marksList = ref<object[]>( [] ),
 
-	stepper = ref()
+	stepper = ref(),
+
+	aboutFormRef = ref(),
+	passportFormRef = ref(),
+	certificateFormRef = ref(),
+	finishFormRef = ref()
 
 ;( async () => {
 
@@ -189,9 +194,9 @@ const
 	statusesCache = socialStatuses.value
 
 const
-	filterSpecializations = ( val : any, update : any, abort : any ) =>
+	filterSpecializations = ( val : any, update : any ) =>
 		update( () => specializations.value = groupsCache.filter( ( v : any ) => v.name.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) ),
-	filterSocialStatuses = ( val : any, update : any, abort : any ) =>
+	filterSocialStatuses = ( val : any, update : any ) =>
 		update( () => socialStatuses.value = statusesCache.filter( ( v : any ) => v.title.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) )
 
 // watchers
@@ -314,6 +319,25 @@ watch( selectedSpecializations, ( value ) => toggleLocalStorage( 'selectedSpecia
 watch( selectedSocialStatuses, ( value ) => toggleLocalStorage( 'selectedSocialStatuses', JSON.stringify( value ) ) )
 watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 
+// send application
+
+const sendApplication = async () => {
+
+	const data = new FormData()
+
+	// TODO :: add validation
+	validateForm( passportFormRef.value, 'passport' )
+
+	// data.append( 'photo', photo[ 0 ] )
+	// data.append( 'passportScan', passportScan[ 0 ] ) // will be array
+	// data.append( 'passportScan', passportScan[ 1 ] )
+
+	const res = await api.post( '/abiturients', data )
+
+	console.log( res )
+
+}
+
 </script>
 
 <template>
@@ -345,9 +369,10 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 			:error="validation.aboutMe.isError"
 		>
 
-		  <q-form ref="firstStepForm">
+		  <q-form ref="aboutFormRef">
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
 				  class="col"
 				  v-model="lastName"
@@ -360,6 +385,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-input
 				  class="col"
 				  v-model="firstName"
@@ -372,6 +398,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-input
 				  class="col"
 				  v-model="middleName"
@@ -385,9 +412,11 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  autogrow
 				  no-error-icon
 			  />
+
 			</div>
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
 				  class="col"
 				  v-model="birthDate"
@@ -401,6 +430,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-input
 				  class="col-8"
 				  v-model="address"
@@ -413,9 +443,11 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			</div>
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
 				  class="col"
 				  v-model="phoneNumber"
@@ -428,6 +460,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-input
 				  class="col-7"
 				  v-model="email"
@@ -439,6 +472,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required, 'email' ]"
 			  />
+
 			</div>
 
 			<div class="q-mt-md row">
@@ -451,7 +485,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  color="indigo-4"
 				  accept="image/*"
 
-				  @added=" ( files ) => photo.push( files ) "
+				  @added=" ( files ) => photo.push( ...files ) "
 				  @removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
 			  />
 			</div>
@@ -465,7 +499,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.firstStepForm, 'aboutMe' ) "
+				@click=" validateForm( $refs.aboutFormRef, 'aboutMe' ) "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -482,9 +516,10 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 			:error="validation.passport.isError"
 		>
 
-		  <q-form ref="sendStepForm">
+		  <q-form ref="passportFormRef">
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
 				  class="col"
 				  v-model="passportSeries"
@@ -497,6 +532,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-input
 				  class="col"
 				  v-model="passportNumber"
@@ -509,6 +545,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-input
 				  class="col"
 				  v-model="passportIssuedDate"
@@ -522,9 +559,11 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			</div>
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
 				  class="col"
 				  v-model="passportIssuedBy"
@@ -537,6 +576,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-input
 				  class="col-2"
 				  v-model="passportCode"
@@ -549,9 +589,11 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			</div>
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
 				  class="col"
 				  v-model="passportAddress"
@@ -579,6 +621,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  dense
 				  label="Совпадает с адресом проживания"
 			  />
+
 			</div>
 
 			<div class="q-mt-md row">
@@ -619,7 +662,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.sendStepForm, 'passport' ) "
+				@click=" validateForm( $refs.passportFormRef, 'passport' ) "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -636,9 +679,10 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 			:error="validation.certificate.isError"
 		>
 
-		  <q-form ref="thirdStepForm">
+		  <q-form ref="certificateFormRef">
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
 				  class="col-3"
 				  v-model="certificateNumber"
@@ -651,6 +695,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-input
 				  class="col"
 				  v-model="schoolName"
@@ -662,6 +707,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			  <q-select
 				  class="col-2"
 				  v-model="endSchoolYear"
@@ -672,6 +718,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  />
+
 			</div>
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
@@ -706,7 +753,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  color="indigo-4"
 				  accept="image/*"
 
-				  @added=" ( files ) => certificateScan.push( files ) "
+				  @added=" ( files ) => certificateScan.push( ...files ) "
 				  @removed=" ( files ) => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 ) "
 			  />
 			</div>
@@ -731,7 +778,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.thirdStepForm, 'certificate' ) "
+				@click=" validateForm( $refs.certificateFormRef, 'certificate' ) "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -748,7 +795,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 			:error="validation.finish.isError"
 		>
 
-		  <q-form>
+		  <q-form ref="finishFormRef">
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
 
@@ -825,7 +872,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				  color="indigo-4"
 				  accept="image/*"
 
-				  @added=" ( files ) => extraFiles.push( files ) "
+				  @added=" ( files ) => extraFiles.push( ...files ) "
 				  @removed=" ( files ) => extraFiles.splice( extraFiles.findIndex( p => p === files[0] ), 1 ) "
 			  />
 			</div>
@@ -849,6 +896,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 				:class="$q.screen.lt.sm ? 'full-width' : 'col'"
 				outline
 				color="green"
+				@click="sendApplication"
 			>
 			  Отправить
 			</q-btn>

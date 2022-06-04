@@ -5,9 +5,9 @@ import { strictEqual } from 'assert'
 const
 	abiturientsRouter = express.Router()
 
-// TODO :: check auth
+// get list of abiturients (in admin)
 
-// get list of abiturients
+// TODO :: add auth middleware
 
 abiturientsRouter.get( '/', async ( req, res, next ) => {
 
@@ -31,6 +31,8 @@ abiturientsRouter.get( '/', async ( req, res, next ) => {
 } )
 
 // get current abiturient
+
+// TODO :: add auth middleware
 
 abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 
@@ -116,6 +118,15 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 		}
 
 	res.send( { items : [ formattedAbiturient ] } )
+
+} )
+
+// add new abiturient
+
+abiturientsRouter.post( '/', async ( req, res, next ) => {
+
+	console.log( req.body )
+	console.log( req.files )
 
 } )
 
