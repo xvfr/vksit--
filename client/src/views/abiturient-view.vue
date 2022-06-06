@@ -16,7 +16,7 @@ const
 	abiturientID = $route.params.id,
 	abiturientDialog = ref( true ),
 
-	currentStep = ref( 'aboutMe' ),
+	currentStep = ref( $route.query.step || 'aboutMe' ),
 
 	firstName = ref<null | string>( null ),
 	lastName = ref<null | string>( null ),
@@ -57,12 +57,6 @@ const
 	extraFiles = reactive<object[]>( [] ),
 	extraFilesRef = ref(),
 
-	socialStatuses = ref( [
-		{
-			statusID : -1,
-			title : 'Нет'
-		}
-	] ),
 	// TODO :: change any type
 	marksList = ref<any[]>( [] ),
 	statements = ref<any[]>( [] ),
@@ -86,6 +80,7 @@ const
 socialStatusesStore.get()
 
 watch( passportAddressEqual, ( value ) => value && ( passportAddress.value = address.value ) )
+watch( currentStep, step => $router.push( { query : { step } } ) )
 
 const
 	saveAbiturient = () => {
@@ -134,13 +129,9 @@ const
 		endSchoolYear.value = response.certificate.end_school_year
 
 		statements.value = response.statements
-
-		// TODO :: change view selected specializations
-		// TODO :: remove any type
-		selectedSpecializations.value = response.statements.map( ( e : any ) => e.group_id )
+		selectedSpecializations.value = response.statements.map( ( e : any ) => groupsStore.groups.find( g => g.groupID === e.group_id )?.shortName )
 
 		originalCertificateStatement.value = statements.value?.find( s => s.original_certificate )?.statement_id
-
 		if ( originalCertificateStatement.value )
 			originalCertificateExists.value = true
 
@@ -159,6 +150,7 @@ const
   <q-dialog
 	  square
 	  full-width
+	  no-route-dismiss
 	  v-model="abiturientDialog"
 	  @hide=" $router.push( { name : 'abiturients' } ) "
   >
@@ -643,7 +635,7 @@ const
 				</q-item-section>
 
 				<q-item-section class="text-caption">
-				  {{ specializations.find( (e : any) => e.groupID === statement.group_id )?.name }}
+				  {{ groupsStore.groups.find( ( e : any ) => e.groupID === statement.group_id )?.name }}
 				</q-item-section>
 
 				<q-item-section side>

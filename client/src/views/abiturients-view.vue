@@ -108,35 +108,6 @@ const
 
 	}
 
-	// groups
-	//
-	// try {
-	//
-	// 	const
-	// 		{ data : { items } } = await api.get( 'groups' ),
-	//
-	// 		groups = items.map( ( e : any ) => ( {
-	// 			groupID : e.group_id,
-	// 			name : e.name,
-	// 			shortName : e.short_name,
-	// 			isPaid : e.is_paid
-	// 		} ) )
-	//
-	// 	specializations.value.push( ...groups )
-	//
-	// } catch ( e ) {
-	//
-	// 	console.error( e )
-	// 	$q.notify( {
-	// 		progress : true,
-	// 		message : 'Не удалось загрузить список специальностей',
-	// 		caption : 'Подробная информация в консоли',
-	// 		type : 'warning',
-	// 		position : 'bottom-left'
-	// 	} )
-	//
-	// }
-
 } )()
 
 </script>

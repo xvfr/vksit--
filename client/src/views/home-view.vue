@@ -109,35 +109,35 @@ const
 
 socialStatusesStore.get()
 
-// ;( async () => {
-//
-// try {
-//
-// 	const
-// 		{ data : { items } } = await api.get( 'disciplines' ),
-//
-// 		disciplines = items.map( ( e : any ) => ( {
-// 			discipline_id : e.discipline_id,
-// 			title : e.name
-// 		} ) )
-//
-// 	marksList.value.push( ...disciplines )
-// 	loading.marks = false
-//
-// } catch ( e ) {
-//
-// 	console.error( e )
-// 	$q.notify( {
-// 		progress : true,
-// 		message : 'Не удалось загрузить список дисциплин',
-// 		caption : 'Подробная информация в консоли',
-// 		type : 'warning',
-// 		position : 'bottom-left'
-// 	} )
-//
-// }
-//
-// } )()
+;( async () => {
+
+try {
+
+	const
+		{ data : { items } } = await api.get( 'disciplines' ),
+
+		disciplines = items.map( ( e : any ) => ( {
+			discipline_id : e.discipline_id,
+			title : e.name
+		} ) )
+
+	marksList.value.push( ...disciplines )
+	loading.marks = false
+
+} catch ( e ) {
+
+	console.error( e )
+	$q.notify( {
+		progress : true,
+		message : 'Не удалось загрузить список дисциплин',
+		caption : 'Подробная информация в консоли',
+		type : 'warning',
+		position : 'bottom-left'
+	} )
+
+}
+
+} )()
 
 // filters
 
