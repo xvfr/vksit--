@@ -4,12 +4,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { laGofore } from '@quasar/extras/line-awesome'
 import api from '@/api'
 import { useGroups } from '@/stores/groups'
+import { useSocialStatuses } from '@/stores/social-statuses'
 
 const
 	$route = useRoute(),
 	$router = useRouter(),
 
 	groupsStore = useGroups(),
+	socialStatusesStore = useSocialStatuses(),
 
 	abiturientID = $route.params.id,
 	abiturientDialog = ref( true ),
@@ -80,6 +82,8 @@ const
 	} ),
 
 	possibleEndSchoolYears = Array( 15 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i )
+
+socialStatusesStore.get()
 
 watch( passportAddressEqual, ( value ) => value && ( passportAddress.value = address.value ) )
 
@@ -568,7 +572,7 @@ const
 				  label="Социальный статус"
 				  v-model="selectedSocialStatuses"
 
-				  :options="socialStatuses"
+				  :options="socialStatusesStore.socialStatuses"
 				  option-value="statusID"
 				  option-label="title"
 

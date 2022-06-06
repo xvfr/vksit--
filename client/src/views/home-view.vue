@@ -3,16 +3,16 @@ import { nextTick, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 import { useGroups } from '@/stores/groups'
+import { useSocialStatuses } from '@/stores/social-statuses'
 
 const
 	$q = useQuasar(),
 
-	groupStore = useGroups(),
+	groupsStore = useGroups(),
+	socialStatusesStore = useSocialStatuses(),
 
 	currentStep = ref( localStorage.currentStep || 'aboutMe' ),
 	loading = reactive( {
-		specializations : true,
-		socialStatuses : true,
 		marks : true
 	} ),
 
@@ -107,72 +107,49 @@ const
 	certificateFormRef = ref(),
 	finishFormRef = ref()
 
+socialStatusesStore.get()
+
 // ;( async () => {
-
-	// try {
-	//
-	// 	const
-	// 		{ data : { items } } = await api.get( 'social-statuses' ),
-	// 		statuses = items.map( ( e : any ) => ( {
-	// 			statusID : e.social_status_id,
-	// 			title : e.title
-	// 		} ) )
-	//
-	// 	socialStatuses.value.push( ...statuses )
-	// 	loading.socialStatuses = false
-	//
-	// } catch ( e ) {
-	//
-	// 	console.error( e )
-	// 	$q.notify( {
-	// 		progress : true,
-	// 		message : 'Не удалось загрузить список соц. статусов',
-	// 		caption : 'Подробная информация в консоли',
-	// 		type : 'warning',
-	// 		position : 'bottom-left'
-	// 	} )
-	//
-	// }
-
-	// try {
-	//
-	// 	const
-	// 		{ data : { items } } = await api.get( 'disciplines' ),
-	//
-	// 		disciplines = items.map( ( e : any ) => ( {
-	// 			discipline_id : e.discipline_id,
-	// 			title : e.name
-	// 		} ) )
-	//
-	// 	marksList.value.push( ...disciplines )
-	// 	loading.marks = false
-	//
-	// } catch ( e ) {
-	//
-	// 	console.error( e )
-	// 	$q.notify( {
-	// 		progress : true,
-	// 		message : 'Не удалось загрузить список дисциплин',
-	// 		caption : 'Подробная информация в консоли',
-	// 		type : 'warning',
-	// 		position : 'bottom-left'
-	// 	} )
-	//
-	// }
-
+//
+// try {
+//
+// 	const
+// 		{ data : { items } } = await api.get( 'disciplines' ),
+//
+// 		disciplines = items.map( ( e : any ) => ( {
+// 			discipline_id : e.discipline_id,
+// 			title : e.name
+// 		} ) )
+//
+// 	marksList.value.push( ...disciplines )
+// 	loading.marks = false
+//
+// } catch ( e ) {
+//
+// 	console.error( e )
+// 	$q.notify( {
+// 		progress : true,
+// 		message : 'Не удалось загрузить список дисциплин',
+// 		caption : 'Подробная информация в консоли',
+// 		type : 'warning',
+// 		position : 'bottom-left'
+// 	} )
+//
+// }
+//
 // } )()
 
 // filters
 
 const
-	groupsCache = groupStore.groups,
-	statusesCache = socialStatuses.value
+	groupsCache = groupsStore.groups,
+	statusesCache = socialStatusesStore.socialStatuses
 
 const
 	filterSpecializations = ( val : any, update : any ) =>
-		update( () => groupStore.groups = groupsCache.filter( ( v : any ) => v.name.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) ),
+		update( () => groupsStore.groups = groupsCache.filter( ( v : any ) => v.name.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) ),
 	filterSocialStatuses = ( val : any, update : any ) =>
-		update( () => socialStatuses.value = statusesCache.filter( ( v : any ) => v.title.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) )
+		update( () => socialStatusesStore.socialStatuses = statusesCache.filter( ( v : any ) => v.title.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) )
 
 // watchers
 
@@ -781,7 +758,7 @@ const sendApplication = async () => {
 				  :rules="[ v => v && !!v.length || '* обязательное поле' ]"
 				  v-model="selectedSpecializations"
 
-				  :options="groupStore.groups"
+				  :options="groupsStore.groups"
 				  option-label="name"
 				  option-value="shortName"
 				  emit-value
@@ -797,8 +774,8 @@ const sendApplication = async () => {
 				  use-chips
 				  use-input
 
-				  :loading="groupStore.isLoading"
-				  :disable="groupStore.isLoading || groupStore.isError"
+				  :loading="groupsStore.isLoading"
+				  :disable="groupsStore.isLoading || groupsStore.isError"
 			  />
 
 			  <q-select
@@ -806,7 +783,7 @@ const sendApplication = async () => {
 				  label="Социальный статус"
 				  v-model="selectedSocialStatuses"
 
-				  :options="socialStatuses"
+				  :options="socialStatusesStore.socialStatuses"
 				  option-value="statusID"
 				  option-label="title"
 
@@ -819,8 +796,8 @@ const sendApplication = async () => {
 				  use-chips
 				  use-input
 
-				  :disable="loading.socialStatuses"
-				  :loading="loading.socialStatuses"
+				  :loading="socialStatusesStore.isLoading"
+				  :disable="socialStatusesStore.isLoading || socialStatusesStore.isError"
 			  />
 
 			  <q-toggle
