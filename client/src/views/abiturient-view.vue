@@ -52,19 +52,22 @@ const
 	extraFiles = reactive<object[]>( [] ),
 	extraFilesRef = ref(),
 
-	specializations = inject( 'specializations' ),
+	// TODO :: change specializations get and remove any type
+	specializations = inject<any>( 'specializations' ),
 	socialStatuses = ref( [
 		{
 			statusID : -1,
 			title : 'Нет'
 		}
 	] ),
-	marksList = ref<object[]>( [] ),
+	// TODO :: change any type
+	marksList = ref<any[]>( [] ),
 	statements = ref<any[]>( [] ),
 	originalCertificateStatement = ref( null ),
 	originalCertificateExists = ref( false ),
 
-	status = ref<object | null>( null ),
+	// TODO :: change any type
+	status = ref<any | null>( null ),
 
 	rules = {
 		required : ( v : string ) => !!v || '* обязательное поле',
@@ -128,7 +131,8 @@ const
 		statements.value = response.statements
 
 		// TODO :: change view selected specializations
-		selectedSpecializations.value = response.statements.map( e => e.group_id )
+		// TODO :: remove any type
+		selectedSpecializations.value = response.statements.map( ( e : any ) => e.group_id )
 
 		originalCertificateStatement.value = statements.value?.find( s => s.original_certificate )?.statement_id
 
@@ -634,7 +638,7 @@ const
 				</q-item-section>
 
 				<q-item-section class="text-caption">
-				  {{ specializations.find( e => e.groupID === statement.group_id )?.name }}
+				  {{ specializations.find( (e : any) => e.groupID === statement.group_id )?.name }}
 				</q-item-section>
 
 				<q-item-section side>

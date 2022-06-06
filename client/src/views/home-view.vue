@@ -93,7 +93,9 @@ const
 			title : 'Нет'
 		}
 	] ),
-	marksList = ref<object[]>( [] ),
+
+	// TODO :: change any type
+	marksList = ref<any[]>( [] ),
 
 	stepper = ref(),
 

@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
 import { useAuth } from '@/stores/auth'
-import { useRoute } from 'vue-router'
 
 const
-	$route = useRoute(),
 	authStore = useAuth(),
 	login = ref<string | null>( localStorage.login || null ),
 	password = ref<string | null>( null ),
@@ -15,7 +13,10 @@ const
 
 watch( login, ( value ) => !!value ? localStorage.login = value : delete localStorage.login )
 
-const authorize = async ( login: string, password : string, redirect: string | undefined ) => {
+const authorize = async ( login: string | null, password : string | null, redirect: string | undefined ) => {
+
+	if ( !login || !password )
+		return
 
 	loading.auth = true
 	await authStore.authorize( login, password, redirect )

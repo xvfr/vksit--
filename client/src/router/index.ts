@@ -62,6 +62,8 @@ const router = createRouter( {
 		}
 	]
 
+	// TODO :: add error page
+
 } )
 
 router.beforeEach( ( to, from ) => {
