@@ -2,9 +2,13 @@
 import { nextTick, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
+import { useGroups } from '@/stores/groups'
 
 const
 	$q = useQuasar(),
+
+	groupStore = useGroups(),
+
 	currentStep = ref( localStorage.currentStep || 'aboutMe' ),
 	loading = reactive( {
 		specializations : true,
@@ -44,12 +48,12 @@ const
 
 	// 4 step
 
-	selectedSpecializations = ref<null | object[]>( localStorage.selectedSpecializations ? JSON.parse( localStorage.selectedSpecializations ) : [] ),
-	selectedSocialStatuses = ref<null | object[]>( localStorage.selectedSocialStatuses ? JSON.parse( localStorage.selectedSocialStatuses ) : [ {
+	selectedSpecializations = ref<object[] | null>( localStorage.selectedSpecializations ? JSON.parse( localStorage.selectedSpecializations ) : [] ),
+	selectedSocialStatuses = ref<object[] | null>( localStorage.selectedSocialStatuses ? JSON.parse( localStorage.selectedSocialStatuses ) : [ {
 		statusID : -1,
 		title : 'Нет'
 	} ] ),
-	dormitory = ref<null | boolean>( localStorage.dormitory || false ),
+	dormitory = ref<boolean>( localStorage.dormitory || false ),
 	extraFiles = reactive<object[]>( [] ),
 	extraFilesDialog = ref( false ),
 
@@ -86,7 +90,6 @@ const
 
 	possibleEndSchoolYears = Array( 5 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i ),
 
-	specializations = ref<object[]>( [] ),
 	socialStatuses = ref( [
 		{
 			statusID : -1,
@@ -104,100 +107,70 @@ const
 	certificateFormRef = ref(),
 	finishFormRef = ref()
 
-;( async () => {
+// ;( async () => {
 
-	try {
+	// try {
+	//
+	// 	const
+	// 		{ data : { items } } = await api.get( 'social-statuses' ),
+	// 		statuses = items.map( ( e : any ) => ( {
+	// 			statusID : e.social_status_id,
+	// 			title : e.title
+	// 		} ) )
+	//
+	// 	socialStatuses.value.push( ...statuses )
+	// 	loading.socialStatuses = false
+	//
+	// } catch ( e ) {
+	//
+	// 	console.error( e )
+	// 	$q.notify( {
+	// 		progress : true,
+	// 		message : 'Не удалось загрузить список соц. статусов',
+	// 		caption : 'Подробная информация в консоли',
+	// 		type : 'warning',
+	// 		position : 'bottom-left'
+	// 	} )
+	//
+	// }
 
-		const
-			{ data : { items } } = await api.get( 'groups' ),
+	// try {
+	//
+	// 	const
+	// 		{ data : { items } } = await api.get( 'disciplines' ),
+	//
+	// 		disciplines = items.map( ( e : any ) => ( {
+	// 			discipline_id : e.discipline_id,
+	// 			title : e.name
+	// 		} ) )
+	//
+	// 	marksList.value.push( ...disciplines )
+	// 	loading.marks = false
+	//
+	// } catch ( e ) {
+	//
+	// 	console.error( e )
+	// 	$q.notify( {
+	// 		progress : true,
+	// 		message : 'Не удалось загрузить список дисциплин',
+	// 		caption : 'Подробная информация в консоли',
+	// 		type : 'warning',
+	// 		position : 'bottom-left'
+	// 	} )
+	//
+	// }
 
-			// TODO :: add groups list to pinia
-
-			groups = items.map( ( e : any ) => ( {
-				groupID : e.group_id,
-				name : e.name,
-				shortName : e.short_name,
-				isPaid : e.is_paid
-			} ) )
-
-		specializations.value.push( ...groups )
-		loading.specializations = false
-
-	} catch ( e ) {
-
-		console.error( e )
-		$q.notify( {
-			progress : true,
-			message : 'Не удалось загрузить список специальностей',
-			caption : 'Подробная информация в консоли',
-			type : 'warning',
-			position : 'bottom-left'
-		} )
-
-	}
-
-	try {
-
-		const
-			{ data : { items } } = await api.get( 'social-statuses' ),
-			statuses = items.map( ( e : any ) => ( {
-				statusID : e.social_status_id,
-				title : e.title
-			} ) )
-
-		socialStatuses.value.push( ...statuses )
-		loading.socialStatuses = false
-
-	} catch ( e ) {
-
-		console.error( e )
-		$q.notify( {
-			progress : true,
-			message : 'Не удалось загрузить список соц. статусов',
-			caption : 'Подробная информация в консоли',
-			type : 'warning',
-			position : 'bottom-left'
-		} )
-
-	}
-
-	try {
-
-		const
-			{ data : { items } } = await api.get( 'disciplines' ),
-
-			disciplines = items.map( ( e : any ) => ( {
-				discipline_id : e.discipline_id,
-				title : e.name
-			} ) )
-
-		marksList.value.push( ...disciplines )
-		loading.marks = false
-
-	} catch ( e ) {
-
-		console.error( e )
-		$q.notify( {
-			progress : true,
-			message : 'Не удалось загрузить список дисциплин',
-			caption : 'Подробная информация в консоли',
-			type : 'warning',
-			position : 'bottom-left'
-		} )
-
-	}
-
-} )()
+// } )()
 
 // filters
 
 const
-	groupsCache = specializations.value,
+	groupsCache = groupStore.groups,
 	statusesCache = socialStatuses.value
 
 const
 	filterSpecializations = ( val : any, update : any ) =>
-		update( () => specializations.value = groupsCache.filter( ( v : any ) => v.name.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) ),
+		update( () => groupStore.groups = groupsCache.filter( ( v : any ) => v.name.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) ),
 	filterSocialStatuses = ( val : any, update : any ) =>
 		update( () => socialStatuses.value = statusesCache.filter( ( v : any ) => v.title.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) )
 
@@ -805,10 +778,10 @@ const sendApplication = async () => {
 				  class="col"
 				  label="Специальность"
 				  no-error-icon
-				  :rules="[ v => !!v.length || '* обязательное поле' ]"
+				  :rules="[ v => v && !!v.length || '* обязательное поле' ]"
 				  v-model="selectedSpecializations"
 
-				  :options="specializations"
+				  :options="groupStore.groups"
 				  option-label="name"
 				  option-value="shortName"
 				  emit-value
@@ -824,8 +797,8 @@ const sendApplication = async () => {
 				  use-chips
 				  use-input
 
-				  :disable="loading.specializations"
-				  :loading="loading.specializations"
+				  :loading="groupStore.isLoading"
+				  :disable="groupStore.isLoading || groupStore.isError"
 			  />
 
 			  <q-select

@@ -2,10 +2,14 @@
 import { ref } from 'vue'
 import NavigationRoutes from '@/components/navigation-routes.vue'
 import { useAuth } from '@/stores/auth'
+import { useGroups } from '@/stores/groups'
 
 const
 	authStore = useAuth(),
+	groupsStore = useGroups(),
 	drawer = ref( false )
+
+groupsStore.get()
 
 </script>
 
