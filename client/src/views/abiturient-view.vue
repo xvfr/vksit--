@@ -3,10 +3,13 @@ import { inject, nextTick, reactive, ref, unref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { laGofore } from '@quasar/extras/line-awesome'
 import api from '@/api'
+import { useGroups } from '@/stores/groups'
 
 const
 	$route = useRoute(),
 	$router = useRouter(),
+
+	groupsStore = useGroups(),
 
 	abiturientID = $route.params.id,
 	abiturientDialog = ref( true ),
@@ -52,8 +55,6 @@ const
 	extraFiles = reactive<object[]>( [] ),
 	extraFilesRef = ref(),
 
-	// TODO :: change specializations get and remove any type
-	specializations = inject<any>( 'specializations' ),
 	socialStatuses = ref( [
 		{
 			statusID : -1,
@@ -547,10 +548,10 @@ const
 				  class="col"
 				  label="Специальность"
 				  no-error-icon
-				  :rules="[ v => !!v.length || '* обязательное поле' ]"
+				  :rules="[ v => v && !!v.length || '* обязательное поле' ]"
 				  v-model="selectedSpecializations"
 
-				  :options="specializations"
+				  :options="groupsStore.groups"
 				  option-label="name"
 				  option-value="shortName"
 				  emit-value

@@ -3,11 +3,14 @@ import { reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 import faker from '@faker-js/faker/locale/ru'
+import { useGroups } from '@/stores/groups'
 
 const
 	$q = useQuasar(),
+
+	groupsStore = useGroups(),
+
 	loading = reactive( {
-		specializations : true,
 		rating : true
 	} ),
 
@@ -65,40 +68,9 @@ const
 	],
 	rows : any = [],
 
-	selectedSpecialization = ref<object | null>( null ),
-	specializations = ref<object[]>( [] )
+	selectedSpecialization = ref<object | null>( null )
 
-;( async () => {
-
-	try {
-
-		const
-			{ data : { items } } = await api.get( 'groups' ),
-
-			groups = items.map( ( e : any ) => ( {
-				groupID : e.group_id,
-				name : e.name,
-				shortName : e.short_name,
-				isPaid : e.is_paid
-			} ) )
-
-		specializations.value.push( ...groups )
-		loading.specializations = false
-
-	} catch ( e ) {
-
-		console.error( e )
-		$q.notify( {
-			progress : true,
-			message : 'Не удалось загрузить список специальностей',
-			caption : 'Подробная информация в консоли',
-			type : 'warning',
-			position : 'bottom-left'
-		} )
-
-	}
-
-} )()
+// TODO :: add selected spec to localstorage
 
 for ( let i = 1; i < 30; i++ )
 	rows.push( {
@@ -129,8 +101,11 @@ for ( let i = 1; i < 30; i++ )
 		  v-model="selectedSpecialization"
 
 		  label="Выберите специальность"
-		  :loading="loading.specializations"
-		  :options="specializations"
+		  :loading="groupsStore.isLoading"
+		  :options="groupsStore.groups"
+		  :disable="groupsStore.isLoading || groupsStore.isError"
+		  :error="groupsStore.isError"
+		  error-message="Не удалось загрузить список специальностей"
 
 		  option-label="name"
 		  option-value="groupID"
