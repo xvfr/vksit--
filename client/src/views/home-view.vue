@@ -109,33 +109,35 @@ const
 
 socialStatusesStore.get()
 
+watch( passportScan, val => console.log( val ) )
+
 ;( async () => {
 
-try {
+	try {
 
-	const
-		{ data : { items } } = await api.get( 'disciplines' ),
+		const
+			{ data : { items } } = await api.get( 'disciplines' ),
 
-		disciplines = items.map( ( e : any ) => ( {
-			discipline_id : e.discipline_id,
-			title : e.name
-		} ) )
+			disciplines = items.map( ( e : any ) => ( {
+				discipline_id : e.discipline_id,
+				title : e.name
+			} ) )
 
-	marksList.value.push( ...disciplines )
-	loading.marks = false
+		marksList.value.push( ...disciplines )
+		loading.marks = false
 
-} catch ( e ) {
+	} catch ( e ) {
 
-	console.error( e )
-	$q.notify( {
-		progress : true,
-		message : 'Не удалось загрузить список дисциплин',
-		caption : 'Подробная информация в консоли',
-		type : 'warning',
-		position : 'bottom-left'
-	} )
+		console.error( e )
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить список дисциплин',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom-left'
+		} )
 
-}
+	}
 
 } )()
 
@@ -270,6 +272,14 @@ watch( marks, ( value ) => toggleLocalStorage( 'marks', JSON.stringify( value ) 
 watch( selectedSpecializations, ( value ) => toggleLocalStorage( 'selectedSpecializations', JSON.stringify( value ) ) )
 watch( selectedSocialStatuses, ( value ) => toggleLocalStorage( 'selectedSocialStatuses', JSON.stringify( value ) ) )
 watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
+
+// remove files from quploader stash
+
+const removeFileFromStash = ( stash : any, files : [] ) => {
+	for ( const file of files ) {
+		stash.splice( stash.findIndex( ( s : any ) => s === file ), 1 )
+	}
+}
 
 // send application
 
@@ -438,8 +448,9 @@ const sendApplication = async () => {
 				  accept="image/*"
 
 				  @added=" ( files ) => photo.push( ...files ) "
-				  @removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
+				  @removed=" ( files ) => removeFileFromStash( photo, files ) "
 			  />
+
 			</div>
 			<div class="text-grey text-caption">* прикрепление фото необязательно</div>
 
@@ -589,7 +600,7 @@ const sendApplication = async () => {
 				  accept="image/*"
 
 				  @added=" ( files ) => passportScan.push( ...files ) "
-				  @removed=" ( files ) => passportScan.splice( passportScan.findIndex( p => p === files[0] ), 1 ) "
+				  @removed=" ( files ) => removeFileFromStash( passportScan, files ) "
 			  />
 			</div>
 			<div class="text-grey text-caption">* необходимо прикрепить фотографию/скан паспорта на которых видны
@@ -706,7 +717,7 @@ const sendApplication = async () => {
 				  accept="image/*"
 
 				  @added=" ( files ) => certificateScan.push( ...files ) "
-				  @removed=" ( files ) => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 ) "
+				  @removed=" ( files ) => removeFileFromStash( certificateScan, files ) "
 			  />
 			</div>
 			<div class="text-grey text-caption">* необходимо прикрепить фотографию/скан аттестата на которых видны:
@@ -825,7 +836,7 @@ const sendApplication = async () => {
 				  accept="image/*"
 
 				  @added=" ( files ) => extraFiles.push( ...files ) "
-				  @removed=" ( files ) => extraFiles.splice( extraFiles.findIndex( p => p === files[0] ), 1 ) "
+				  @removed=" ( files ) => removeFileFromStash( extraFiles, files ) "
 			  />
 			</div>
 			<div class="text-blue-5 cursor-pointer text-caption" @click="extraFilesDialog = true">Какие файлы можно

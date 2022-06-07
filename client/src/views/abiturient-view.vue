@@ -299,8 +299,6 @@ const
 				  color="indigo-4"
 				  accept="image/*"
 
-				  multiple
-
 				  ref="photoRef"
 
 				  @added=" ( files ) => photo.push( files ) "
