@@ -256,7 +256,7 @@ watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 
 // remove files from quploader stash
 
-const removeFileFromStash = ( stash : any, files : [] ) => {
+const removeFileFromStash = ( stash : any, files : any[] ) => {
 	for ( const file of files ) {
 		stash.splice( stash.findIndex( ( s : any ) => s === file ), 1 )
 	}

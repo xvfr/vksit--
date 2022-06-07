@@ -80,7 +80,7 @@ const
 				abiturientID : e.abiturient_id,
 				fullName : `${ e.last_name } ${ e.first_name } ${ e.middle_name }`,
 				createdAt : new Date().toLocaleDateString(),
-				phoneNumber : e.phone,
+				phoneNumber : '+7 ' + e.phone,
 				email : e.email,
 
 				comment : e.comment,
@@ -139,7 +139,6 @@ const
 
 		<template v-slot:body-cell-abiturientID="props">
 		  <q-td key="statementID" :props="props">
-			<!--	TODO :: customize link	or router-link use	-->
 			<b @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )"
 			   class="cursor-pointer text-overline">{{ props.row.abiturientID }}</b>
 		  </q-td>
@@ -150,6 +149,18 @@ const
 			<q-badge outline align="middle" :color="props.row.status.color">
 			  {{ props.row.status.title }}
 			</q-badge>
+		  </q-td>
+		</template>
+
+		<template #body-cell-email="props">
+		  <q-td key="email" :props="props">
+			<a :href="`mailto:${props.row.email}`">{{ props.row.email }}</a>
+		  </q-td>
+		</template>
+
+		<template #body-cell-phoneNumber="props">
+		  <q-td key="phoneNumber" :props="props">
+			<a :href="`tel:${props.row.phoneNumber}`">{{ props.row.phoneNumber }}</a>
 		  </q-td>
 		</template>
 
@@ -187,7 +198,7 @@ const
 
 .applications-form {
 
-  width: 60%;
+  width: 70%;
 
   @media screen and (max-width: $breakpoint-md-max) {
     width: 85%;

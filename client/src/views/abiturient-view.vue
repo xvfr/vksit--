@@ -116,11 +116,15 @@ const
 		statements.value = response.statements
 		selectedSpecializations.value = response.statements.map( ( e : any ) => groupsStore.groups.find( g => g.groupID === e.group_id )?.shortName )
 
+		selectedSocialStatuses.value = response.social_statuses.map( ( s : any ) => socialStatusesStore.socialStatuses.find( sc => sc.statusID === s ) )
+
 		originalCertificateStatement.value = statements.value?.find( s => s.original_certificate )?.statement_id
 		if ( originalCertificateStatement.value )
 			originalCertificateExists.value = true
 
 		status.value = response.abiturient.status
+
+		// TODO :: add response to cache for use latter (check changed field)
 
 	} catch {
 		errors.exists = true
@@ -581,6 +585,8 @@ const
 				  option-value="shortName"
 				  emit-value
 
+				  behavior="dialog"
+
 				  clearable
 				  clear-icon="clear"
 				  counter
@@ -597,10 +603,14 @@ const
 				  option-value="statusID"
 				  option-label="title"
 
+				  behavior="dialog"
+
 				  counter
 				  multiple
 				  use-chips
 			  />
+
+			  <!--		TODO :: сделать выбор статуса как в основной форме	  -->
 
 			  <q-toggle
 				  class="col-auto"
@@ -655,6 +665,8 @@ const
 			</q-toggle>
 
 			<q-list bordered>
+
+			  <!--		TODO :: add mobile friendly	  -->
 
 			  <q-item v-for="statement of statements">
 

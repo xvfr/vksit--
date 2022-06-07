@@ -111,6 +111,8 @@ for ( let i = 1; i < 30; i++ )
 		  option-value="groupID"
 	  />
 
+	  <!--	TODO :: save selected group to localstorage and route  -->
+
 	</q-card-section>
 	<q-card-section>
 
