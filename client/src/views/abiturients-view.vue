@@ -135,6 +135,8 @@ const
 		  :rows="abiturients"
 
 		  :pagination="{ rowsPerPage : 50 }"
+
+		  @row-dblclick=" ( evt, row, index ) => $router.push( { name : 'abiturient', params : { id : row.abiturientID } } ) "
 	  >
 
 		<template v-slot:body-cell-abiturientID="props">
@@ -180,6 +182,7 @@ const
 			<q-btn-group flat>
 			  <q-btn flat round color="primary" icon="edit" size="sm"
 					 @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" />
+			  <q-btn flat round color="indigo-5" icon="download" size="sm" />
 			  <q-btn flat round color="red-5" icon="delete" size="sm" />
 			</q-btn-group>
 		  </q-td>

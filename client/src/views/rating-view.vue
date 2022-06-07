@@ -67,7 +67,8 @@ const
 	],
 	rows : any = [],
 
-	selectedSpecialization = ref<object | null>( localStorage.ratingSpecialization ? JSON.parse( localStorage.ratingSpecialization ) : null )
+	// TODO :: change any type
+	selectedSpecialization = ref<any | null>( localStorage.ratingSpecialization ? JSON.parse( localStorage.ratingSpecialization ) : null )
 
 for ( let i = 1; i < 30; i++ )
 	rows.push( {

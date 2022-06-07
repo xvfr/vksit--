@@ -134,11 +134,11 @@ const
 
 ;( async () => {
 
-	const
-		{ data } = await api.get( 'abiturients/1/photos/1', { responseType : 'blob' } ),
-		file = new File( [ data ], '1-1', { type : data.type } )
-
-	photoRef.value.addFiles( [ file ] )
+	// const
+	// 	{ data } = await api.get( 'abiturients/1/photos/1', { responseType : 'blob' } ),
+	// 	file = new File( [ data ], '1-1', { type : data.type } )
+	//
+	// photoRef.value.addFiles( [ file ] )
 
 } )()
 
@@ -297,7 +297,6 @@ const
 			  <q-uploader
 				  class="col q-mt-none"
 				  label="Фото"
-				  hide-upload-btn
 				  square
 				  flat
 				  color="indigo-4"
@@ -307,42 +306,9 @@ const
 
 				  @added=" ( files ) => photo.push( files ) "
 				  @removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
-			  >
-				<template v-slot:list="scope : any">
+			  />
 
-				  <q-list separator>
-					<q-item v-for="file in scope.files" :key="file.name">
-
-					  <q-item-section>
-						<q-item-label class="full-width ellipsis">
-						  {{ file.name }}
-						</q-item-label>
-						<q-item-label caption>
-						  {{ file.__sizeLabel }}
-						</q-item-label>
-					  </q-item-section>
-
-					  <q-item-section
-						  v-if="file.__img"
-						  thumbnail
-						  class="gt-xs"
-					  >
-						<img :src="file.__img.src" alt="photo-image">
-					  </q-item-section>
-
-					  <q-item-section side>
-						<q-btn-group flat>
-						  <q-btn size="sm" flat dense round icon="open_in_new" />
-						  <q-btn size="sm" flat dense round icon="download" />
-						  <q-btn size="sm" flat dense round icon="delete" @click="scope.removeFile(file)" />
-						</q-btn-group>
-					  </q-item-section>
-
-					</q-item>
-				  </q-list>
-
-				</template>
-			  </q-uploader>
+			  <!--		TODO :: add handling upload btn on quploader	  -->
 
 			</div>
 
@@ -703,6 +669,38 @@ const
 
 			</q-list>
 
+			<br />
+
+			<q-list bordered>
+
+			  <q-item dense>
+				<q-item-section>
+				  <q-item-label overline>Согласие на обработку персональных данных</q-item-label>
+				</q-item-section>
+				<q-item-section side>
+				  <div class="text-grey-8 q-gutter-xs">
+					<q-btn-group flat>
+					  <q-btn size="sm" flat dense round icon="print" />
+					</q-btn-group>
+				  </div>
+				</q-item-section>
+			  </q-item>
+
+			  <q-item dense>
+				<q-item-section>
+				  <q-item-label overline>Заявление на общежитие</q-item-label>
+				</q-item-section>
+				<q-item-section side>
+				  <div class="text-grey-8 q-gutter-xs">
+					<q-btn-group flat>
+					  <q-btn size="sm" flat dense round icon="print" />
+					</q-btn-group>
+				  </div>
+				</q-item-section>
+			  </q-item>
+
+			</q-list>
+
 		  </q-step>
 
 		  <!--			Documents			-->
@@ -713,14 +711,53 @@ const
 			  icon="cloud_upload"
 		  >
 
-			<div class="text-grey text-caption">Заявление
-			  <q-icon name="download" />
-			</div>
-			<div class="text-grey text-caption">Согласие на обработку персональных данных
-			  <q-icon name="download" />
-			</div>
-			<div class="text-grey text-caption">Заявление на общежитие (optional)
-			  <q-icon name="download" />
+			<div class="flex q-gutter-md justify-center">
+
+			  <q-card class="file-card">
+				<q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
+				  <div class="absolute-top text-overline text-center">
+					Фото
+				  </div>
+				</q-img>
+				<q-card-actions>
+				  <q-btn-group flat class="full-width" spread>
+					<q-btn size="xs" flat dense round icon="download">скачать</q-btn>
+					<q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
+					<q-btn size="xs" flat dense round icon="delete">удалить</q-btn>
+				  </q-btn-group>
+				</q-card-actions>
+			  </q-card>
+
+			  <q-card class="file-card" v-for="i in 4">
+				<q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
+				  <div class="absolute-top text-overline text-center">
+					Паспорт ({{ i }})
+				  </div>
+				</q-img>
+				<q-card-actions>
+				  <q-btn-group flat class="full-width" spread>
+					<q-btn size="xs" flat dense round icon="download">скачать</q-btn>
+					<q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
+					<q-btn size="xs" flat dense round icon="delete">удалить</q-btn>
+				  </q-btn-group>
+				</q-card-actions>
+			  </q-card>
+
+			  <q-card class="file-card" v-for="i in 3">
+				<q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
+				  <div class="absolute-top text-overline text-center">
+					Аттестат ({{ i }})
+				  </div>
+				</q-img>
+				<q-card-actions>
+				  <q-btn-group flat class="full-width" spread>
+					<q-btn size="xs" flat dense round icon="download">скачать</q-btn>
+					<q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
+					<q-btn size="xs" flat dense round icon="delete">удалить</q-btn>
+				  </q-btn-group>
+				</q-card-actions>
+			  </q-card>
+
 			</div>
 
 		  </q-step>
@@ -751,6 +788,20 @@ const
 
   @media screen and (max-width: $breakpoint-sm-max) {
     width: 100% !important;;
+  }
+
+}
+
+.file-card {
+
+  width: 30%;
+
+  @media screen and (max-width: $breakpoint-md-max) {
+    width: 47%;
+  }
+
+  @media screen and (max-width: $breakpoint-sm-max) {
+    width: 100%;
   }
 
 }
