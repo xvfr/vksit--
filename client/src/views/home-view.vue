@@ -61,7 +61,7 @@ const
 
 	rules = {
 		required : ( v : string ) => !!v || '* обязательное поле',
-		mark : ( v : number ) => v <= 5 && v >= 1 || 'введите корректное значение'
+		mark : ( v : number ) => v <= 5 && v >= 1 || '* некорректное значение'
 	},
 
 	validation = reactive( {
@@ -401,7 +401,10 @@ const sendApplication = async () => {
 				  fill-mask="_"
 				  prefix="+7"
 				  no-error-icon
-				  :rules="[ rules.required ]"
+				  :rules="[
+					  rules.required,
+					  v => !!v && /\(\d{3}\)\s\d{3}\s-\s\d{4}/.test(v) || '* обязательное поле'
+				  ]"
 			  />
 
 			  <q-input
@@ -476,7 +479,10 @@ const sendApplication = async () => {
 				  clearable
 				  clear-icon="clear"
 				  no-error-icon
-				  :rules="[ rules.required ]"
+				  :rules="[
+					  rules.required,
+					  v => !!v && v.length === 4 || '* обязательное поле'
+				  ]"
 			  />
 
 			  <q-input
@@ -489,7 +495,10 @@ const sendApplication = async () => {
 				  clearable
 				  clear-icon="clear"
 				  no-error-icon
-				  :rules="[ rules.required ]"
+				  :rules="[
+					  rules.required,
+					  v => !!v && v.length === 6 || '* обязательное поле'
+				  ]"
 			  />
 
 			  <q-input
@@ -533,7 +542,10 @@ const sendApplication = async () => {
 				  clearable
 				  clear-icon="clear"
 				  no-error-icon
-				  :rules="[ rules.required ]"
+				  :rules="[
+					  rules.required,
+					  v => !!v && v.length === 6 || '* обязательное поле'
+				  ]"
 			  />
 
 			</div>
@@ -640,7 +652,10 @@ const sendApplication = async () => {
 				  clearable
 				  clear-icon="clear"
 				  no-error-icon
-				  :rules="[ rules.required ]"
+				  :rules="[
+					  rules.required,
+					  v => !!v && v.length === 14 || '* обязательное поле'
+				  ]"
 			  />
 
 			  <q-input
@@ -682,7 +697,7 @@ const sendApplication = async () => {
 				  clearable
 				  clear-icon="clear"
 				  no-error-icon
-				  :rules="[ rules.required, rules.mark ]"
+				  :rules="[ rules.mark, rules.required ]"
 				  hint="Оценка по предмету"
 			  />
 
@@ -707,7 +722,8 @@ const sendApplication = async () => {
 			  />
 			</div>
 			<div class="text-grey text-caption">* необходимо прикрепить фотографию/скан аттестата на которых видны:
-			  главная страница документа и приложения к аттестату с оценками (обе стороны) | максимальный размер одного файла 3МБ
+			  главная страница документа и приложения к аттестату с оценками (обе стороны) | максимальный размер одного
+			  файла 3МБ
 			</div>
 
 		  </q-form>
