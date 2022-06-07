@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import api from '@/api'
 import faker from '@faker-js/faker/locale/ru'
 import { useGroups } from '@/stores/groups'
 
@@ -68,9 +67,7 @@ const
 	],
 	rows : any = [],
 
-	selectedSpecialization = ref<object | null>( null )
-
-// TODO :: add selected spec to localstorage
+	selectedSpecialization = ref<object | null>( localStorage.ratingSpecialization ? JSON.parse( localStorage.ratingSpecialization ) : null )
 
 for ( let i = 1; i < 30; i++ )
 	rows.push( {
@@ -82,6 +79,8 @@ for ( let i = 1; i < 30; i++ )
 		createdAt : new Date( faker.date.past() ).toLocaleDateString(),
 		isOriginal : Math.random() > 0.5
 	} )
+
+watch( selectedSpecialization, spec => spec ? localStorage.ratingSpecialization = JSON.stringify( spec ) : delete localStorage.ratingSpecialization )
 
 </script>
 
@@ -114,7 +113,7 @@ for ( let i = 1; i < 30; i++ )
 	  <!--	TODO :: save selected group to localstorage and route  -->
 
 	</q-card-section>
-	<q-card-section>
+	<q-card-section v-if="selectedSpecialization">
 
 	  <q-table
 		  :grid="$q.screen.lt.md"
@@ -125,7 +124,7 @@ for ( let i = 1; i < 30; i++ )
 		  :loading="loading.rating"
 
 		  table-header-class="bg-indigo-1"
-		  table-class="rating"
+		  :table-class=" selectedSpecialization?.isPaid ? 'highlights-5' : 'highlights-25' "
 
 		  :pagination="{ rowsPerPage : 50, sortBy : 'isOriginal', descending : true }"
 	  />
@@ -155,8 +154,20 @@ for ( let i = 1; i < 30; i++ )
   background-color: #f5f5f5;
 }
 
-:deep( .rating tr:nth-child( 25 ) td ) {
-  border-bottom: 1px dashed indigo;
+:deep( .highlights-25 ) {
+
+  & tr:nth-child( 25 ) td {
+    border-bottom: 1px dashed indigo;
+  }
+
+}
+
+:deep( .highlights-5 ) {
+
+  & tr:nth-child( 5 ) td {
+    border-bottom: 1px dashed indigo;
+  }
+
 }
 
 </style>
