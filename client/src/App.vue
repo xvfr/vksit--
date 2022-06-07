@@ -27,7 +27,7 @@ groupsStore.get()
 		</q-avatar>
 
 		<q-toolbar-title>
-		  <span class="cursor-pointer" @click="$router.push('/')">АПОУ «Вологодский колледж связи и информационных технологий»</span>
+		  <span class="cursor-pointer" @click="$router.push('/')">Приемная комиссия АПОУ «Вологодский колледж связи и информационных технологий»</span>
 		</q-toolbar-title>
 
 		<q-tabs class="gt-sm">
