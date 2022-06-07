@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { Notify } from 'quasar'
 import router from '@/router'
 import api from '@/api'
-import { AxiosError } from 'axios'
+import { Axios, AxiosError } from 'axios'
 
 export const useAuth = defineStore( 'auth', {
 
@@ -57,21 +57,7 @@ export const useAuth = defineStore( 'auth', {
 
 			} catch ( e ) {
 
-				if ( e instanceof AxiosError ) {
-
-					if ( e.response?.status === 0 )
-						Notify.create( {
-							type : 'warning',
-							message : 'Нет связи с сервером',
-							caption : 'Попробуйте повторить попытку позже',
-
-							progress : true,
-
-							position : 'bottom-left'
-						} )
-
-				} else {
-
+				if ( e instanceof AxiosError && e.response?.status === 401 )
 					Notify.create( {
 						type : 'warning',
 						message : 'Неверный логин или пароль!',
@@ -80,8 +66,6 @@ export const useAuth = defineStore( 'auth', {
 
 						position : 'bottom-left'
 					} )
-
-				}
 
 			}
 
