@@ -1,6 +1,6 @@
 import express from 'express'
 import db from '../db'
-import { strictEqual } from 'assert'
+import path from 'path'
 
 const
 	abiturientsRouter = express.Router()
@@ -67,6 +67,8 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 			.select( 'descipline_id', 'mark' )
 			.where( 'abiturient_id', abiturientID )
 
+	// TODO :: get abit files ids
+
 	const
 		passport = {
 			id : abiturient.passport_id,
@@ -118,6 +120,17 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 		}
 
 	res.send( { items : [ formattedAbiturient ] } )
+
+} )
+
+// get files of abiturient id
+
+abiturientsRouter.get( '/:abiturientID/:fileType/:fileID', async ( req, res, next ) => {
+
+	const
+		{ fileType } = req.params
+
+	res.sendFile( path.join( fileType, '1-1.jpg' ), { root : path.join( __dirname, '..', '..', 'uploads' ) } )
 
 } )
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { inject, nextTick, reactive, ref, unref, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { laGofore } from '@quasar/extras/line-awesome'
 import api from '@/api'
 import { useGroups } from '@/stores/groups'
 import { useSocialStatuses } from '@/stores/social-statuses'
@@ -87,20 +86,6 @@ const
 		$router.replace( { name : 'abiturients' } )
 	}
 
-// ;( async () => {
-//
-// 	const
-// 		data = await fetch( 'https://cdn.shopify.com/s/files/1/0234/8017/2591/products/young-man-in-bright-fashion_925x_f7029e2b-80f0-4a40-a87b-834b9a283c39.jpg?v=1572867553'),
-// 		blob = await data.blob(),
-// 		file = new File( [ blob ], 'adasddas.jpg', { type : blob.type } )
-//
-// 	console.log( blob )
-// 	console.log( file )
-// 	console.log( photoRef.value.addFiles( [ file ] ) )
-// 	photoRef.value.upload()
-//
-// } )()
-
 // load abiturient
 
 ;( async () => {
@@ -140,6 +125,16 @@ const
 	} catch {
 		errors.exists = true
 	}
+
+} )()
+
+;( async () => {
+
+	const
+		{ data } = await api.get( 'abiturients/1/photos/1', { responseType : 'blob' } ),
+		file = new File( [ data ], '1-1', { type : data.type } )
+
+	photoRef.value.addFiles( [ file ] )
 
 } )()
 
@@ -294,6 +289,7 @@ const
 			</div>
 
 			<div class="q-mt-md row">
+
 			  <q-uploader
 				  class="col q-mt-none"
 				  label="Фото"
@@ -303,13 +299,48 @@ const
 				  color="indigo-4"
 				  accept="image/*"
 
+				  multiple
+
 				  ref="photoRef"
 
 				  @added=" ( files ) => photo.push( files ) "
 				  @removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
-			  />
+			  >
+				<template v-slot:list="scope : any">
 
-			  <!--			  TODO :: change file preview			-->
+				  <q-list separator>
+					<q-item v-for="file in scope.files" :key="file.name">
+
+					  <q-item-section>
+						<q-item-label class="full-width ellipsis">
+						  {{ file.name }}
+						</q-item-label>
+						<q-item-label caption>
+						  {{ file.__sizeLabel }}
+						</q-item-label>
+					  </q-item-section>
+
+					  <q-item-section
+						  v-if="file.__img"
+						  thumbnail
+						  class="gt-xs"
+					  >
+						<img :src="file.__img.src" alt="photo-image">
+					  </q-item-section>
+
+					  <q-item-section side>
+						<q-btn-group flat>
+						  <q-btn size="sm" flat dense round icon="open_in_new" />
+						  <q-btn size="sm" flat dense round icon="download" />
+						  <q-btn size="sm" flat dense round icon="delete" @click="scope.removeFile(file)" />
+						</q-btn-group>
+					  </q-item-section>
+
+					</q-item>
+				  </q-list>
+
+				</template>
+			  </q-uploader>
 
 			</div>
 
