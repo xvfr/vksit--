@@ -5,6 +5,10 @@ import fileUpload from 'express-fileupload'
 import cors from 'cors'
 import 'dotenv/config'
 
+// other
+
+import ApiError from './errors/api'
+
 // controllers
 
 import abiturientsRouter from './controllers/abiturients'
@@ -31,9 +35,15 @@ app.use( '/api/staff', staffRouter )
 
 // errors check
 //noinspection JSUnusedLocalSymbols
-app.use( ( err : Error, req : Request, res : Response, next : NextFunction ) => {
-	// res.status( err.status || 500 )
-	res.status( 500 ).send( { error : err.message } )
+app.use( ( err : ApiError, req : Request, res : Response, next : NextFunction ) => {
+	res.status( err.status || 500 ).send( {
+		error : {
+			error_msg : err.message || 'Internal Server Error',
+			error_description : err.description,
+			error_code : err.code,
+			fields : [ ...err.fields ]
+		}
+	} )
 } )
 
 app.use( ( req, res ) => {

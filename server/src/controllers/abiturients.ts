@@ -1,6 +1,7 @@
 import express from 'express'
 import db from '../db'
 import path from 'path'
+import ApiError from '../errors/api'
 
 const
 	abiturientsRouter = express.Router()
@@ -137,6 +138,27 @@ abiturientsRouter.get( '/:abiturientID/:fileType/:fileID', async ( req, res, nex
 // add new abiturient
 
 abiturientsRouter.post( '/', async ( req, res, next ) => {
+
+	const
+		error = new ApiError( 400, 'Bad Request' ),
+		{ firstName, lastName, middleName } = req.body
+
+	if ( !firstName )
+		error.add( 'firstName', 'Имя - обязательное поле' )
+
+	if ( !lastName )
+		error.add( 'lastName', 'Фамилия - обязательное поле' )
+
+	if ( !error.isEmpty() )
+		return next( error )
+
+	// add to db
+	// save files
+	// check files size
+	// check files type
+	// create applications
+	// create other documents
+	// send mail
 
 	console.log( req.body )
 	console.log( req.files )

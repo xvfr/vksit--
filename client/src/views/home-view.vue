@@ -428,12 +428,14 @@ const sendApplication = async () => {
 				  color="indigo-4"
 				  accept="image/*"
 
+				  max-file-size="3145728"
+
 				  @added=" ( files ) => photo.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( photo, files ) "
 			  />
 
 			</div>
-			<div class="text-grey text-caption">* прикрепление фото необязательно</div>
+			<div class="text-grey text-caption">* прикрепление фото необязательно | максимальный размер файла 3МБ</div>
 
 		  </q-form>
 
@@ -580,13 +582,14 @@ const sendApplication = async () => {
 				  color="indigo-4"
 				  accept="image/*"
 
+				  max-file-size="3145728"
+
 				  @added=" ( files ) => passportScan.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( passportScan, files ) "
 			  />
 			</div>
 			<div class="text-grey text-caption">* необходимо прикрепить фотографию/скан паспорта на которых видны
-			  2,3,4,5
-			  страницы
+			  2,3,4,5 страницы | максимальный размер одного файла 3МБ
 			</div>
 
 		  </q-form>
@@ -697,12 +700,14 @@ const sendApplication = async () => {
 				  color="indigo-4"
 				  accept="image/*"
 
+				  max-file-size="3145728"
+
 				  @added=" ( files ) => certificateScan.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( certificateScan, files ) "
 			  />
 			</div>
 			<div class="text-grey text-caption">* необходимо прикрепить фотографию/скан аттестата на которых видны:
-			  главная страница документа и приложения к аттестату с оценками (обе стороны)
+			  главная страница документа и приложения к аттестату с оценками (обе стороны) | максимальный размер одного файла 3МБ
 			</div>
 
 		  </q-form>
@@ -810,10 +815,13 @@ const sendApplication = async () => {
 				  color="indigo-4"
 				  accept="image/*"
 
+				  max-file-size="3145728"
+
 				  @added=" ( files ) => extraFiles.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( extraFiles, files ) "
 			  />
 			</div>
+			<div class="text-caption text-grey">* максимальный размер одного файла 3МБ</div>
 			<div class="text-blue-5 cursor-pointer text-caption" @click="extraFilesDialog = true">Какие файлы можно
 			  прикрепить?
 			</div>
