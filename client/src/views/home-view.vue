@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 import { useGroups } from '@/stores/groups'
@@ -90,13 +90,6 @@ const
 
 	possibleEndSchoolYears = Array( 5 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i ),
 
-	socialStatuses = ref( [
-		{
-			statusID : -1,
-			title : 'Нет'
-		}
-	] ),
-
 	// TODO :: change any type
 	marksList = ref<any[]>( [] ),
 
@@ -140,18 +133,6 @@ watch( passportScan, val => console.log( val ) )
 	}
 
 } )()
-
-// filters
-
-const
-	groupsCache = groupsStore.groups,
-	statusesCache = socialStatusesStore.socialStatuses
-
-const
-	filterSpecializations = ( val : any, update : any ) =>
-		update( () => groupsStore.groups = groupsCache.filter( ( v : any ) => v.name.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) ),
-	filterSocialStatuses = ( val : any, update : any ) =>
-		update( () => socialStatusesStore.socialStatuses = statusesCache.filter( ( v : any ) => v.title.toLowerCase().indexOf( val.toLowerCase() ) > -1 ) )
 
 // watchers
 
@@ -776,14 +757,11 @@ const sendApplication = async () => {
 
 				  behavior="dialog"
 
-				  @filter="filterSpecializations"
-
 				  clearable
 				  clear-icon="clear"
 				  counter
 				  multiple
 				  use-chips
-				  use-input
 
 				  :loading="groupsStore.isLoading"
 				  :disable="groupsStore.isLoading || groupsStore.isError"
@@ -800,12 +778,9 @@ const sendApplication = async () => {
 
 				  behavior="dialog"
 
-				  @filter="filterSocialStatuses"
-
 				  counter
 				  multiple
 				  use-chips
-				  use-input
 
 				  :loading="socialStatusesStore.isLoading"
 				  :disable="socialStatusesStore.isLoading || socialStatusesStore.isError"
