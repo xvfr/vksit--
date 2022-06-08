@@ -213,7 +213,6 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 
 	if ( validateComponents( formRef.getValidationComponents() ) ) {
 
-		stepper.value.next()
 		validation[ step ].isDone = true
 
 	} else {
@@ -280,44 +279,64 @@ const removeFileFromStash = ( stash : any, files : any[] ) => {
 
 const sendApplication = async () => {
 
-	currentStep.value = 'aboutMe'
+	await nextTick( () => stepper.value.goTo( 'aboutMe' ) )
 
-	nextTick( async () => {
+	if ( validateForm( aboutFormRef.value, 'aboutMe' ) ) {
 
-		if ( validateForm( aboutFormRef.value, 'aboutMe' ) ) {
+		await nextTick( () => stepper.value.goTo( 'passport' ) )
 
-			currentStep.value = 'passport'
+		if ( passportScan.length )
+			$q.notify( 'Прикрепите сканы паспорта' )
+		else if ( validateForm( passportFormRef.value, 'passport' ) ) {
 
-			if ( !passportScan.length )
-				$q.notify( 'Прикрепите сканы паспорта' )
-			else if ( validateForm( passportFormRef.value, 'passport' ) ) {
+			await nextTick( () => stepper.value.goTo( 'certificate' ) )
 
-				currentStep.value = 'certificate'
+			if ( certificateScan.length )
+				$q.notify( 'Прикрепите сканы аттестата' )
+			else if ( validateForm( certificateFormRef.value, 'certificate' ) ) {
 
-				if ( !certificateScan.length )
-					$q.notify( 'Прикрепите сканы аттестата' )
-				else if ( validateForm( certificateFormRef.value, 'certificate' ) ) {
+				if ( validateForm( finishFormRef.value, 'finish' ) ) {
 
-					currentStep.value = 'finish'
+					loading.page = true
 
-					if ( validateForm( finishFormRef.value, 'finish' ) ) {
+					// all is valid
 
-						loading.page = true
+					const
+						data = new FormData()
 
-						// all is valid
+					data.append( 'firstName', firstName.value as any )
+					data.append( 'lastName', lastName.value as any )
+					data.append( 'middleName', middleName.value as any )
+					data.append( 'birthDate', birthDate.value as any )
+					data.append( 'address', address.value as any )
+					data.append( 'phoneNumber', phoneNumber.value as any )
+					data.append( 'email', email.value as any )
+					for ( const ph of photo as any )
+						data.append( 'photo', ph )
 
-						const
-							data = new FormData()
+					data.append( 'passportSeries', passportSeries.value as any )
+					data.append( 'passportNumber', passportNumber.value as any )
+					data.append( 'passportIssuedDate', passportIssuedDate.value as any )
+					data.append( 'passportIssuedBy', passportIssuedBy.value as any )
+					data.append( 'passportAddress', passportAddress.value as any )
+					data.append( 'passportCode', passportCode.value as any )
+					for ( const scan of passportScan as any )
+						data.append( 'passportScan', scan )
 
-						// data.append( 'photo', photo[ 0 ] )
-						// data.append( 'passportScan', passportScan[ 0 ] ) // will be array
-						// data.append( 'passportScan', passportScan[ 1 ] )
+					// data.append( 'passportScan', passportScan[ 0 ] ) // will be array
+					// data.append( 'passportScan', passportScan[ 1 ] )
 
-						const res = await api.post( '/abiturients', data )
+					// const res = await api.post( '/abiturients', data )
+					//
+					// console.log( res )
 
-						console.log( res )
+					setTimeout( () => {
 
-					}
+						nextTick( () => stepper.value.goTo( 'finish' ) )
+
+						loading.page = false
+
+					}, 3000 )
 
 				}
 
@@ -325,7 +344,7 @@ const sendApplication = async () => {
 
 		}
 
-	} )
+	}
 
 }
 
@@ -497,7 +516,7 @@ const sendApplication = async () => {
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.aboutFormRef, 'aboutMe' ) "
+				@click=" validateForm( $refs.aboutFormRef, 'aboutMe' ), $refs.stepper.next() "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -670,7 +689,7 @@ const sendApplication = async () => {
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.passportFormRef, 'passport' ) "
+				@click=" validateForm( $refs.passportFormRef, 'passport' ), $refs.stepper.next() "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -792,7 +811,7 @@ const sendApplication = async () => {
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.certificateFormRef, 'certificate' ) "
+				@click=" validateForm( $refs.certificateFormRef, 'certificate' ), $refs.stepper.next() "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -817,7 +836,7 @@ const sendApplication = async () => {
 				  class="col"
 				  label="Специальность"
 				  no-error-icon
-				  :rules="[ v => v && !!v.length || '* необходимо выбрать хотя бы одну специальность' ]"
+				  :rules="[ v => v?.length || '* необходимо выбрать хотя бы одну специальность' ]"
 				  v-model="selectedSpecializations"
 
 				  :options="groupsStore.groups"
@@ -826,7 +845,7 @@ const sendApplication = async () => {
 				  emit-value
 
 				  :error="groupsStore.isError"
-				  error-message="Не удалось загрузить список специальностей"
+				  :error-message="groupsStore.isError ? 'Не удалось загрузить список специальностей' : null"
 
 				  behavior="dialog"
 

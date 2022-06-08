@@ -25,7 +25,7 @@ class ApiError extends Error {
 	}
 
 	isEmpty () {
-		return !!this.fields.length
+		return !this.fields.length
 	}
 
 }
