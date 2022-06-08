@@ -157,8 +157,8 @@ const
 
 		<template v-slot:body-cell-status="props">
 		  <q-td key="status" :props="props">
-			<q-badge outline align="middle" :color="props.row.status.color">
-			  {{ props.row.status.title }}
+			<q-badge outline align="middle" :color="props.row.status.color || 'grey'">
+			  {{ props.row.status.title || 'Не установлен' }}
 			</q-badge>
 		  </q-td>
 		</template>
@@ -195,6 +195,57 @@ const
 			  <q-btn flat round color="red-5" icon="delete" size="sm" />
 			</q-btn-group>
 		  </q-td>
+		</template>
+
+		<!--	card slot	-->
+
+		<template #item="props">
+		  <q-card flat>
+			<q-card-section>
+
+			  <div class="text-grey text-caption">#</div>
+			  <b @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )"
+				 class="cursor-pointer">{{ props.row.abiturientID }}</b>
+
+			  <div class="text-grey text-caption q-mt-sm">Статус</div>
+			  <q-badge outline align="middle" :color="props.row.status.color || 'grey'">
+				{{ props.row.status.title || 'Не установлен' }}
+			  </q-badge>
+
+			  <div class="text-grey text-caption q-mt-sm">ФИО</div>
+			  <div class="text-caption">{{ props.row.fullName }}</div>
+
+			  <div class="text-grey text-caption q-mt-sm">Дата подачи</div>
+			  <div class="text-caption">{{ props.row.createdAt }}</div>
+
+			  <div class="text-grey text-caption q-mt-sm">Номер телефона</div>
+			  <div class="text-caption">{{ props.row.phoneNumber }}</div>
+
+			  <div class="text-grey text-caption q-mt-sm">E-mail</div>
+			  <div class="text-caption">{{ props.row.email }}</div>
+
+			  <div class="text-grey text-caption q-mt-sm">Комментарий</div>
+			  <div class="text-caption">
+				{{ props.row.comment || '—' }}
+
+				<!--	TODO :: add save to db	-->
+				<q-popup-edit v-model="props.row.comment" auto-save v-slot="scope">
+				  <q-input v-model="scope.value" dense autofocus counter @keyup.enter="scope.set" />
+				</q-popup-edit>
+			  </div>
+
+			  <div class="text-grey text-caption q-mt-sm">Действия</div>
+			  <div class="text-caption">
+				<q-btn-group flat>
+				  <q-btn flat round color="primary" icon="edit" size="sm"
+						 @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" />
+				  <q-btn flat round color="indigo-5" icon="download" size="sm" />
+				  <q-btn flat round color="red-5" icon="delete" size="sm" />
+				</q-btn-group>
+			  </div>
+
+			</q-card-section>
+		  </q-card>
 		</template>
 
 	  </q-table>

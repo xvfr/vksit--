@@ -664,7 +664,7 @@ const
 				  </div>
 				</q-item-section>
 
-				<q-badge floating>{{ statement.average_score }}</q-badge>
+				<q-badge floating>{{ statement.average_score.toFixed(2) }}</q-badge>
 
 			  </q-item>
 			</q-list>
@@ -702,7 +702,7 @@ const
 				  </div>
 				</q-card-actions>
 
-				<q-badge floating>{{ statement.average_score }}</q-badge>
+				<q-badge floating>{{ statement.average_score.toFixed(2)  }}</q-badge>
 
 			  </q-card>
 			</div>
