@@ -10,7 +10,7 @@ api.interceptors.response.use( response => { return response }, error => {
 	if ( error.code === 'ERR_NETWORK' ) {
 
 		Notify.create( {
-			type : 'warning',
+			type : 'negative',
 			message : 'Нет связи с сервером',
 			caption : 'Попробуйте повторить попытку позже',
 
