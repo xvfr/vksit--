@@ -97,7 +97,6 @@ const
 
 	} catch ( e ) {
 
-		console.error( e )
 		$q.notify( {
 			progress : true,
 			message : 'Не удалось загрузить список заявлений',

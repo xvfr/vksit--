@@ -61,7 +61,8 @@ const
 
 	rules = {
 		required : ( v : string ) => !!v || '* обязательное поле',
-		mark : ( v : number ) => v <= 5 && v >= 1 || '* некорректное значение'
+		mark : ( v : number ) => v <= 5 && v >= 1 || '* некорректное значение',
+		onlyRussianLetters : ( v : string ) => !v || /^[А-ЯЁёа-я]+$/.test(v) || '* только кириллица, без пробелов'
 	},
 
 	validation = reactive( {
@@ -121,7 +122,6 @@ watch( passportScan, val => console.log( val ) )
 
 	} catch ( e ) {
 
-		console.error( e )
 		$q.notify( {
 			progress : true,
 			message : 'Не удалось загрузить список дисциплин',
@@ -139,7 +139,7 @@ watch( passportScan, val => console.log( val ) )
 watch( lastName, ( value ) =>
 	nextTick( () => {
 		value && ( lastName.value = value
-			.replace( /[^А-ЯЁёа-я]*/g, '' )
+			// .replace( /[^А-ЯЁёа-я]*/g, '' )
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 )
@@ -147,7 +147,7 @@ watch( lastName, ( value ) =>
 watch( firstName, ( value ) =>
 	nextTick( () => {
 		value && ( firstName.value = value
-			.replace( /[^А-ЯЁёа-я]*/g, '' )
+			// .replace( /[^А-ЯЁёа-я]*/g, '' )
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 )
@@ -155,7 +155,7 @@ watch( firstName, ( value ) =>
 watch( middleName, ( value ) =>
 	nextTick( () => {
 		value && ( middleName.value = value
-			.replace( /[^А-ЯЁёа-я]*/g, '' )
+			// .replace( /[^А-ЯЁёа-я]*/g, '' )
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 )
@@ -326,7 +326,7 @@ const sendApplication = async () => {
 				  clear-icon="clear"
 				  autogrow
 				  no-error-icon
-				  :rules="[ rules.required ]"
+				  :rules="[ rules.required, rules.onlyRussianLetters ]"
 			  />
 
 			  <q-input
@@ -339,7 +339,7 @@ const sendApplication = async () => {
 				  clear-icon="clear"
 				  autogrow
 				  no-error-icon
-				  :rules="[ rules.required ]"
+				  :rules="[ rules.required, rules.onlyRussianLetters ]"
 			  />
 
 			  <q-input
@@ -354,6 +354,7 @@ const sendApplication = async () => {
 				  hint="* при наличии"
 				  autogrow
 				  no-error-icon
+				  :rules="[ rules.onlyRussianLetters ]"
 			  />
 
 			</div>
