@@ -101,6 +101,7 @@ watch( selectedSpecialization, spec => spec ? localStorage.ratingSpecialization 
 		  v-model="selectedSpecialization"
 
 		  label="Выберите специальность"
+		  no-error-icon
 		  :loading="groupsStore.isLoading"
 		  :options="groupsStore.groups"
 		  :disable="groupsStore.isLoading || groupsStore.isError"

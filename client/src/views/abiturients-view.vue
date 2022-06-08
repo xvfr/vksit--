@@ -5,8 +5,13 @@ import api from '@/api'
 
 const
 	$q = useQuasar(),
+
 	loading = reactive( {
 		applications : true
+	} ),
+
+	errors = reactive( {
+		applications : false
 	} ),
 
 	columns : any = [
@@ -93,9 +98,10 @@ const
 			} ) )
 
 		abiturients.value.push( ...formattedAbiturients )
-		loading.applications = false
 
 	} catch ( e ) {
+
+		errors.applications = true
 
 		$q.notify( {
 			progress : true,
@@ -106,6 +112,8 @@ const
 		} )
 
 	}
+
+	loading.applications = false
 
 } )()
 
@@ -132,6 +140,8 @@ const
 		  table-header-class="bg-grey-2"
 		  :columns="columns"
 		  :rows="abiturients"
+
+		  :no-data-label="errors.applications ? 'Ошибка при получении данных' : 'Нет данных'"
 
 		  :pagination="{ rowsPerPage : 50 }"
 

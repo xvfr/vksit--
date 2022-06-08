@@ -777,11 +777,14 @@ const sendApplication = async () => {
 				  option-value="shortName"
 				  emit-value
 
+				  :error="groupsStore.isError"
+				  error-message="Не удалось загрузить список специальностей"
+
 				  behavior="dialog"
 
 				  clearable
 				  clear-icon="clear"
-				  counter
+				  :counter="!groupsStore.isLoading && !groupsStore.isError"
 				  multiple
 				  use-chips
 
@@ -792,6 +795,7 @@ const sendApplication = async () => {
 			  <q-select
 				  class="col"
 				  label="Социальный статус"
+				  no-error-icon
 				  v-model="selectedSocialStatuses"
 
 				  :options="socialStatusesStore.socialStatuses"
@@ -800,7 +804,10 @@ const sendApplication = async () => {
 
 				  behavior="dialog"
 
-				  counter
+				  :error="socialStatusesStore.isError"
+				  error-message="Не удалось загрузить список социальных статусов"
+
+				  :counter="!socialStatusesStore.isLoading && !socialStatusesStore.isError"
 				  multiple
 				  use-chips
 
