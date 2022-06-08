@@ -651,8 +651,6 @@ const
 				  <div class="text-grey-8 q-gutter-xs">
 					<q-btn-group flat>
 					  <q-btn size="sm" flat dense round icon="print" />
-					  <q-btn size="sm" flat dense round icon="delete" />
-					</q-btn-group>
 
 					<q-radio
 						size="xs"
@@ -662,6 +660,7 @@ const
 						v-model="originalCertificateStatement"
 						:disable="!originalCertificateExists"
 					/>
+					</q-btn-group>
 				  </div>
 				</q-item-section>
 
@@ -687,12 +686,9 @@ const
 				<q-separator></q-separator>
 
 				<q-card-actions>
-
 				  <div class="text-grey-8 q-gutter-xs">
 					<q-btn-group flat>
 					  <q-btn size="sm" flat dense round icon="print" />
-					  <q-btn size="sm" flat dense round icon="delete" />
-					</q-btn-group>
 
 					<q-radio
 						size="xs"
@@ -702,8 +698,8 @@ const
 						v-model="originalCertificateStatement"
 						:disable="!originalCertificateExists"
 					/>
+					</q-btn-group>
 				  </div>
-
 				</q-card-actions>
 
 				<q-badge floating>{{ statement.average_score }}</q-badge>

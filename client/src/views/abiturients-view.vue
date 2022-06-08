@@ -210,7 +210,7 @@ const
 
 .applications-form {
 
-  width: 70%;
+  min-width: 70%;
 
   @media screen and (max-width: $breakpoint-md-max) {
     width: 85%;
