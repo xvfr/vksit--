@@ -39,7 +39,7 @@ groupsStore.get()
 			flat
 			round
 			dense
-			:icon=" authStore.isAuthorized ? 'logout' : 'done' "
+			:icon=" authStore.isAuthorized ? 'logout' : 'login' "
 			class="q-ml-sm"
 		>
 		  <q-tooltip>{{ authStore.isAuthorized ? 'Выйти' : 'Авторизоваться' }}</q-tooltip>

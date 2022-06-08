@@ -50,6 +50,9 @@ const authorize = async ( login: string | null, password : string | null, redire
 			  clearable
 			  clear-icon="clear"
 
+			  autofocus
+			  tabindex="1"
+
 			  :disable="loading.auth"
 		  />
 
@@ -60,6 +63,8 @@ const authorize = async ( login: string | null, password : string | null, redire
 			  clearable
 			  clear-icon="clear"
 			  type="password"
+
+			  tabindex="2"
 
 			  :disable="loading.auth"
 		  />
@@ -75,6 +80,8 @@ const authorize = async ( login: string | null, password : string | null, redire
 			outline
 			:disable="!login || !password || loading.auth"
 			type="submit"
+
+			tabindex="3"
 		>
 		  Авторизоваться
 		</q-btn>
