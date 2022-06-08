@@ -632,10 +632,10 @@ const
 			  Есть оригинал аттестата
 			</q-toggle>
 
-			<q-list bordered>
+			<br />
+			<br />
 
-			  <!--		TODO :: add mobile friendly	  -->
-
+			<q-list bordered v-if="$q.screen.gt.sm">
 			  <q-item v-for="statement of statements">
 
 				<q-item-section side>
@@ -668,8 +668,48 @@ const
 				<q-badge floating>{{ statement.average_score }}</q-badge>
 
 			  </q-item>
-
 			</q-list>
+
+			<div class="q-gutter-sm" v-else>
+			  <q-card flat bordered v-for="statement of statements">
+
+				<q-card-section>
+				  <div class="text-overline"><b>#{{ statement.statement_id }}</b></div>
+				  <div class="text-caption text-grey">{{ statement.created_at }}</div>
+				</q-card-section>
+
+				<q-separator></q-separator>
+
+				<q-card-section class="text-caption">
+				  {{ groupsStore.groups.find( ( e : any ) => e.groupID === statement.group_id )?.name }}
+				</q-card-section>
+
+				<q-separator></q-separator>
+
+				<q-card-actions>
+
+				  <div class="text-grey-8 q-gutter-xs">
+					<q-btn-group flat>
+					  <q-btn size="sm" flat dense round icon="print" />
+					  <q-btn size="sm" flat dense round icon="delete" />
+					</q-btn-group>
+
+					<q-radio
+						size="xs"
+						label="Оригинал"
+						checked-icon="task_alt"
+						:val="statement.statement_id"
+						v-model="originalCertificateStatement"
+						:disable="!originalCertificateExists"
+					/>
+				  </div>
+
+				</q-card-actions>
+
+				<q-badge floating>{{ statement.average_score }}</q-badge>
+
+			  </q-card>
+			</div>
 
 			<br />
 
@@ -802,55 +842,6 @@ const
 
 			  </q-tab-panels>
 			</q-card>
-
-			<!--			<div class="flex q-gutter-md justify-center">-->
-
-			<!--			  <q-card class="file-card">-->
-			<!--				<q-img src="https://cdn.quasar.dev/img/parallax2.jpg">-->
-			<!--				  <div class="absolute-top text-overline text-center">-->
-			<!--					Фото-->
-			<!--				  </div>-->
-			<!--				</q-img>-->
-			<!--				<q-card-actions>-->
-			<!--				  <q-btn-group flat class="full-width" spread>-->
-			<!--					<q-btn size="xs" flat dense round icon="download">скачать</q-btn>-->
-			<!--					<q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>-->
-			<!--					<q-btn size="xs" flat dense round icon="delete">удалить</q-btn>-->
-			<!--				  </q-btn-group>-->
-			<!--				</q-card-actions>-->
-			<!--			  </q-card>-->
-
-			<!--			  <q-card class="file-card" v-for="i in 4">-->
-			<!--				<q-img src="https://cdn.quasar.dev/img/parallax2.jpg">-->
-			<!--				  <div class="absolute-top text-overline text-center">-->
-			<!--					Паспорт ({{ i }})-->
-			<!--				  </div>-->
-			<!--				</q-img>-->
-			<!--				<q-card-actions>-->
-			<!--				  <q-btn-group flat class="full-width" spread>-->
-			<!--					<q-btn size="xs" flat dense round icon="download">скачать</q-btn>-->
-			<!--					<q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>-->
-			<!--					<q-btn size="xs" flat dense round icon="delete">удалить</q-btn>-->
-			<!--				  </q-btn-group>-->
-			<!--				</q-card-actions>-->
-			<!--			  </q-card>-->
-
-			<!--			  <q-card class="file-card" v-for="i in 3">-->
-			<!--				<q-img src="https://cdn.quasar.dev/img/parallax2.jpg">-->
-			<!--				  <div class="absolute-top text-overline text-center">-->
-			<!--					Аттестат ({{ i }})-->
-			<!--				  </div>-->
-			<!--				</q-img>-->
-			<!--				<q-card-actions>-->
-			<!--				  <q-btn-group flat class="full-width" spread>-->
-			<!--					<q-btn size="xs" flat dense round icon="download">скачать</q-btn>-->
-			<!--					<q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>-->
-			<!--					<q-btn size="xs" flat dense round icon="delete">удалить</q-btn>-->
-			<!--				  </q-btn-group>-->
-			<!--				</q-card-actions>-->
-			<!--			  </q-card>-->
-
-			<!--			</div>-->
 
 		  </q-step>
 
