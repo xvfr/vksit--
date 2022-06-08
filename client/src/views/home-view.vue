@@ -13,6 +13,7 @@ const
 
 	currentStep = ref( localStorage.currentStep || 'aboutMe' ),
 	loading = reactive( {
+		page : true,
 		marks : true
 	} ),
 
@@ -62,7 +63,7 @@ const
 	rules = {
 		required : ( v : string ) => !!v || '* обязательное поле',
 		mark : ( v : number ) => v <= 5 && v >= 1 || '* некорректное значение',
-		onlyRussianLetters : ( v : string ) => !v || /^[А-ЯЁёа-я]+$/.test(v) || '* только кириллица, без пробелов'
+		onlyRussianLetters : ( v : string ) => !v || /^[А-ЯЁёа-я]+$/.test( v ) || '* только кириллица, без пробелов'
 	},
 
 	validation = reactive( {
@@ -207,12 +208,17 @@ const validateComponents = ( components : { validate () : boolean }[] ) => {
 
 const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certificate' | 'finish' ) => {
 
+	let
+		isValid = true
+
 	if ( validateComponents( formRef.getValidationComponents() ) ) {
 
 		stepper.value.next()
 		validation[ step ].isDone = true
 
 	} else {
+
+		isValid = false
 
 		validation[ step ].isError = true
 		$q.notify( {
@@ -222,7 +228,15 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 
 	}
 
+	return isValid
+
 }
+
+// on mounted
+
+onMounted( () => {
+	loading.page = false
+} )
 
 // save values to localstorage
 
@@ -266,18 +280,52 @@ const removeFileFromStash = ( stash : any, files : any[] ) => {
 
 const sendApplication = async () => {
 
-	const data = new FormData()
+	currentStep.value = 'aboutMe'
 
-	// TODO :: add validation
-	validateForm( passportFormRef.value, 'passport' )
+	nextTick( async () => {
 
-	// data.append( 'photo', photo[ 0 ] )
-	// data.append( 'passportScan', passportScan[ 0 ] ) // will be array
-	// data.append( 'passportScan', passportScan[ 1 ] )
+		if ( validateForm( aboutFormRef.value, 'aboutMe' ) ) {
 
-	const res = await api.post( '/abiturients', data )
+			currentStep.value = 'passport'
 
-	console.log( res )
+			if ( !passportScan.length )
+				$q.notify( 'Прикрепите сканы паспорта' )
+			else if ( validateForm( passportFormRef.value, 'passport' ) ) {
+
+				currentStep.value = 'certificate'
+
+				if ( !certificateScan.length )
+					$q.notify( 'Прикрепите сканы аттестата' )
+				else if ( validateForm( certificateFormRef.value, 'certificate' ) ) {
+
+					currentStep.value = 'finish'
+
+					if ( validateForm( finishFormRef.value, 'finish' ) ) {
+
+						loading.page = true
+
+						// all is valid
+
+						const
+							data = new FormData()
+
+						// data.append( 'photo', photo[ 0 ] )
+						// data.append( 'passportScan', passportScan[ 0 ] ) // will be array
+						// data.append( 'passportScan', passportScan[ 1 ] )
+
+						const res = await api.post( '/abiturients', data )
+
+						console.log( res )
+
+					}
+
+				}
+
+			}
+
+		}
+
+	} )
 
 }
 
@@ -769,7 +817,7 @@ const sendApplication = async () => {
 				  class="col"
 				  label="Специальность"
 				  no-error-icon
-				  :rules="[ v => v && !!v.length || '* обязательное поле' ]"
+				  :rules="[ v => v && !!v.length || '* необходимо выбрать хотя бы одну специальность' ]"
 				  v-model="selectedSpecializations"
 
 				  :options="groupsStore.groups"
@@ -877,6 +925,9 @@ const sendApplication = async () => {
 	  </q-stepper>
 
 	</q-card-section>
+
+	<q-inner-loading :showing="loading.page" color="primary" size="xl" />
+
   </q-card>
 
   <q-dialog v-model="extraFilesDialog" square>
