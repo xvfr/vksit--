@@ -290,74 +290,240 @@ const sendApplication = async () => {
 
 	loading.page = true
 
-	if ( validateForm( finishFormRef.value, 'finish' ) ) {
+	let
+		date = new Date(),
+		errorsCount = 0
 
-		await nextTick( () => stepper.value.goTo( 'aboutMe' ) )
+	if ( !lastName.value || !/^[А-ЯЁёа-я]+$/.test( lastName.value ) )
+		errorsCount++
 
-		if ( validateForm( aboutFormRef.value, 'aboutMe' ) ) {
+	if ( !firstName.value || !/^[А-ЯЁёа-я]+$/.test( firstName.value ) )
+		errorsCount++
 
-			await nextTick( () => stepper.value.goTo( 'passport' ) )
+	if ( !!middleName.value && !/^[А-ЯЁёа-я]+$/.test( middleName.value ) )
+		errorsCount++
 
-			if ( passportScan.length )
-				$q.notify( 'Прикрепите сканы паспорта' )
-			else if ( validateForm( passportFormRef.value, 'passport' ) ) {
+	if ( !birthDate.value || new Date( birthDate.value ).getFullYear() > date.getFullYear() - 15 || date.getFullYear() - new Date( birthDate.value ).getFullYear() > 50 )
+		errorsCount++
 
-				await nextTick( () => stepper.value.goTo( 'certificate' ) )
+	if ( !address.value )
+		errorsCount++
 
-				if ( certificateScan.length )
-					$q.notify( 'Прикрепите сканы аттестата' )
-				else if ( validateForm( certificateFormRef.value, 'certificate' ) ) {
+	if ( !phoneNumber.value || !/\(\d{3}\)\s\d{3}\s-\s\d{4}/.test( phoneNumber.value ) )
+		errorsCount++
 
-					// all is valid
+	if ( !email.value || !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test( email.value ) )
+		errorsCount++
 
-					const
-						data = new FormData()
+	if ( errorsCount ) {
 
-					data.append( 'firstName', firstName.value as any )
-					data.append( 'lastName', lastName.value as any )
-					data.append( 'middleName', middleName.value as any )
-					data.append( 'birthDate', birthDate.value as any )
-					data.append( 'address', address.value as any )
-					data.append( 'phoneNumber', phoneNumber.value as any )
-					data.append( 'email', email.value as any )
-					for ( const ph of photo as any )
-						data.append( 'photo', ph )
-
-					data.append( 'passportSeries', passportSeries.value as any )
-					data.append( 'passportNumber', passportNumber.value as any )
-					data.append( 'passportIssuedDate', passportIssuedDate.value as any )
-					data.append( 'passportIssuedBy', passportIssuedBy.value as any )
-					data.append( 'passportAddress', passportAddress.value as any )
-					data.append( 'passportCode', passportCode.value as any )
-					for ( const scan of passportScan as any )
-						data.append( 'passportScan', scan )
-
-					// certificateNumber
-					// schoolName
-					// endSchoolYear
-					// marks
-					// certificateScan
-
-					// selectedSpecializations
-					// selectedSocialStatuses
-					// dormitory
-					// extraFiles
-
-					// const res = await api.post( '/abiturients', data )
-					// console.log( res )
-
-					setTimeout( () => {
-						nextTick( () => stepper.value.goTo( 'finish' ) )
-						loading.page = false
-					}, 3000 )
-
-				}
-
-			}
-
-		}
+		await nextTick( stepper.value.goTo( 'aboutMe' ) )
+		validateForm( aboutFormRef.value, 'aboutMe' )
+		return loading.page = false
 
 	}
+
+	if ( !passportSeries.value || String( passportSeries.value ).length !== 4 )
+		errorsCount++
+
+	if ( !passportNumber.value || String( passportNumber.value ).length !== 6 )
+		errorsCount++
+
+	if ( !passportIssuedDate.value )
+		errorsCount++
+
+	if ( !passportIssuedBy.value )
+		errorsCount++
+
+	if ( !passportCode.value || String( passportCode.value ).length !== 6 )
+		errorsCount++
+
+	if ( !passportAddress.value )
+		errorsCount++
+
+	if ( !passportScan.length ) {
+
+		errorsCount++
+		$q.notify( {
+			type : 'warning',
+			message : 'Прикрепите сканы паспорта и попробуйте снова',
+			timeout : 3000,
+			progress : true
+		} )
+
+	}
+
+	if ( errorsCount ) {
+
+		await nextTick( stepper.value.goTo( 'passport' ) )
+		validateForm( passportFormRef.value, 'passport' )
+		return loading.page = false
+
+	}
+
+	if ( !certificateNumber.value || String( certificateNumber.value ).length !== 14 )
+		errorsCount++
+
+	if ( !schoolName.value )
+		errorsCount++
+
+	if ( !endSchoolYear.value )
+		errorsCount++
+
+	if ( !marksList.value.length ) {
+
+		errorsCount++
+		$q.notify( {
+			type : 'warning',
+			message : 'Не удалось записать оценки по предметам',
+			caption : 'Попробуйте перезагрузить страницу и заполнить оценки ещё раз',
+			timeout : 5000,
+			progress : true
+		} )
+
+	} else if ( marksList.value.length !== marks.length ) {
+
+		errorsCount++
+		$q.notify( {
+			type : 'warning',
+			message : 'Заполнены не все оценки',
+			caption : 'Если на странице видны не все оценки, попробуйте перезагрузить страницу',
+			timeout : 5000,
+			progress : true
+		} )
+
+	}
+
+	for ( const mark of marks ) {
+		if ( isNaN( Number( mark ) ) )
+			errorsCount++
+	}
+
+	if ( !certificateScan.length ) {
+
+		errorsCount++
+		$q.notify( {
+			type : 'warning',
+			message : 'Прикрепите сканы аттестата и попробуйте снова',
+			timeout : 3000,
+			progress : true
+		} )
+
+	}
+
+	if ( errorsCount ) {
+
+		await nextTick( stepper.value.goTo( 'certificate' ) )
+		validateForm( certificateFormRef.value, 'certificate' )
+		return loading.page = false
+
+	}
+
+	if ( !selectedSpecializations.value || !selectedSpecializations.value.length )
+		errorsCount++
+
+	if ( errorsCount ) {
+
+		await nextTick( stepper.value.goTo( 'finish' ) )
+		validateForm( finishFormRef.value, 'finish' )
+		return loading.page = false
+
+	}
+
+	// first step
+
+	// if ( !lastName.value ) {
+	// 	errors.lastName = { isError : true, message : '* обязательное поле' }
+	// 	errorsCount++
+	// } else if ( !/^[А-ЯЁёа-я]+$/.test( lastName.value ) ) {
+	// 	errors.lastName = { isError : true, message : '* только кириллица, без пробелов' }
+	// 	errorsCount++
+	// } else
+	// 	errors.lastName = { isError : false }
+	//
+	// if ( !firstName.value ) {
+	// 	errors.firstName = { isError : true, message : '* обязательное поле' }
+	// 	errorsCount++
+	// } else if ( !/^[А-ЯЁёа-я]+$/.test( firstName.value ) ) {
+	// 	errors.firstName = { isError : true, message : '* только кириллица, без пробелов' }
+	// 	errorsCount++
+	// } else
+	// 	errors.firstName = { isError : false }
+	//
+	// if ( !!middleName.value && !/^[А-ЯЁёа-я]+$/.test( middleName.value ) ) {
+	// 	errors.middleName = { isError : true, message : '* только кириллица, без пробелов' }
+	// 	errorsCount++
+	// } else
+	// 	errors.middleName = { isError : false }
+	//
+	// // --
+	//
+	// if ( !birthDate.value ) {
+	// 	errors.birthDate = { isError : true, message : '* обязательное поле' }
+	// 	errorsCount++
+	// } else if ( new Date( birthDate.value ).getFullYear() >= new Date().getFullYear() - 10 ) {
+	// 	errors.birthDate = { isError : true, message : '* неверная дата рождения' }
+	// 	errorsCount++
+	// } else
+	// 	errors.birthDate = { isError : false }
+
+	// if ( !!middleName.value && !/^[А-ЯЁёа-я]+$/.test( middleName.value ) ) {
+	// 	errors.middleName = { isError : true, message : '* только кириллица, без пробелов' }
+	// 	errorsCount++
+	// } else
+	// 	errors.middleName = { isError : false }
+
+	// if ( errorsCount )
+	// 	await nextTick( () => stepper.value.goTo( 'aboutMe' ) )
+
+	// second step
+
+	// if ( passportScan.length )
+	// 	$q.notify( 'Прикрепите сканы паспорта' )
+
+	// all is valid
+
+	// const
+	// 	data = new FormData()
+	//
+	// data.append( 'firstName', firstName.value as any )
+	// data.append( 'lastName', lastName.value as any )
+	// data.append( 'middleName', middleName.value as any )
+	// data.append( 'birthDate', birthDate.value as any )
+	// data.append( 'address', address.value as any )
+	// data.append( 'phoneNumber', phoneNumber.value as any )
+	// data.append( 'email', email.value as any )
+	// for ( const ph of photo as any )
+	// 	data.append( 'photo', ph )
+	//
+	// data.append( 'passportSeries', passportSeries.value as any )
+	// data.append( 'passportNumber', passportNumber.value as any )
+	// data.append( 'passportIssuedDate', passportIssuedDate.value as any )
+	// data.append( 'passportIssuedBy', passportIssuedBy.value as any )
+	// data.append( 'passportAddress', passportAddress.value as any )
+	// data.append( 'passportCode', passportCode.value as any )
+	// for ( const scan of passportScan as any )
+	// 	data.append( 'passportScan', scan )
+	//
+	// data.append( 'certificateNumber', certificateNumber.value as any )
+	// data.append( 'schoolName', schoolName.value as any )
+	// data.append( 'endSchoolYear', endSchoolYear.value as any )
+	// data.append( 'marks', JSON.stringify( marks ) )
+	// for ( const scan of certificateScan as any )
+	// 	data.append( 'certificateScan', scan )
+	//
+	// // selectedSpecializations
+	// // selectedSocialStatuses
+	// // dormitory
+	// // extraFiles
+	//
+	// // const res = await api.post( '/abiturients', data )
+	// // console.log( res )
+	//
+	// setTimeout( () => {
+	// 	nextTick( () => stepper.value.goTo( 'finish' ) )
+	// 	// loading.page = false
+	// }, 3000 )
 
 }
 
@@ -407,6 +573,8 @@ const sendApplication = async () => {
 				  autogrow
 				  no-error-icon
 				  :rules="[ rules.required, rules.onlyRussianLetters ]"
+
+				  tabindex="1"
 			  />
 
 			  <q-input
@@ -420,6 +588,8 @@ const sendApplication = async () => {
 				  autogrow
 				  no-error-icon
 				  :rules="[ rules.required, rules.onlyRussianLetters ]"
+
+				  tabindex="2"
 			  />
 
 			  <q-input
@@ -435,6 +605,8 @@ const sendApplication = async () => {
 				  autogrow
 				  no-error-icon
 				  :rules="[ rules.onlyRussianLetters ]"
+
+				  tabindex="3"
 			  />
 
 			</div>
@@ -450,9 +622,15 @@ const sendApplication = async () => {
 				  clearable
 				  clear-icon="clear"
 				  min="2000-01-01"
-				  :max="new Date( new Date().getFullYear() - 16, new Date().getMonth(), new Date().getDate() ).toLocaleDateString('en-ca')"
+				  :max="new Date( new Date().getFullYear() - 15, new Date().getMonth(), new Date().getDate() ).toLocaleDateString('en-ca')"
 				  no-error-icon
-				  :rules="[ rules.required ]"
+				  :rules="[
+					  rules.required,
+					  v => new Date(v).getFullYear() < new Date().getFullYear() - 15 || '* неверная дата рождения',
+					  v => new Date().getFullYear() - new Date(v).getFullYear() < 50 || '* неверная дата рождения'
+				  ]"
+
+				  tabindex="4"
 			  />
 
 			  <q-input
@@ -466,6 +644,8 @@ const sendApplication = async () => {
 				  clear-icon="clear"
 				  no-error-icon
 				  :rules="[ rules.required ]"
+
+				  tabindex="5"
 			  />
 
 			</div>
@@ -486,6 +666,8 @@ const sendApplication = async () => {
 					  rules.required,
 					  v => !!v && /\(\d{3}\)\s\d{3}\s-\s\d{4}/.test(v) || '* обязательное поле'
 				  ]"
+
+				  tabindex="6"
 			  />
 
 			  <q-input
@@ -498,6 +680,8 @@ const sendApplication = async () => {
 				  clear-icon="clear"
 				  no-error-icon
 				  :rules="[ rules.required, 'email' ]"
+
+				  tabindex="7"
 			  />
 
 			</div>
@@ -564,6 +748,8 @@ const sendApplication = async () => {
 					  rules.required,
 					  v => !!v && v.length === 4 || '* обязательное поле'
 				  ]"
+
+				  tabindex="8"
 			  />
 
 			  <q-input
@@ -580,6 +766,8 @@ const sendApplication = async () => {
 					  rules.required,
 					  v => !!v && v.length === 6 || '* обязательное поле'
 				  ]"
+
+				  tabindex="9"
 			  />
 
 			  <q-input
@@ -594,6 +782,8 @@ const sendApplication = async () => {
 				  :max="new Date().toLocaleDateString('en-ca')"
 				  no-error-icon
 				  :rules="[ rules.required ]"
+
+				  tabindex="10"
 			  />
 
 			</div>
@@ -611,6 +801,8 @@ const sendApplication = async () => {
 				  clear-icon="clear"
 				  no-error-icon
 				  :rules="[ rules.required ]"
+
+				  tabindex="11"
 			  />
 
 			  <q-input
@@ -627,6 +819,8 @@ const sendApplication = async () => {
 					  rules.required,
 					  v => !!v && v.length === 6 || '* обязательное поле'
 				  ]"
+
+				  tabindex="12"
 			  />
 
 			</div>
@@ -644,6 +838,8 @@ const sendApplication = async () => {
 				  clear-icon="clear"
 				  no-error-icon
 				  :rules="[ rules.required ]"
+
+				  tabindex="12"
 			  >
 				<template v-slot>
 				  <q-checkbox
@@ -651,6 +847,8 @@ const sendApplication = async () => {
 					  v-model="passportAddressEqual"
 					  dense
 					  label="Совпадает с адресом проживания"
+
+					  tabindex="13"
 				  />
 				</template>
 			  </q-input>
@@ -737,6 +935,8 @@ const sendApplication = async () => {
 					  rules.required,
 					  v => !!v && v.length === 14 || '* обязательное поле'
 				  ]"
+
+				  tabindex="14"
 			  />
 
 			  <q-input
@@ -749,6 +949,8 @@ const sendApplication = async () => {
 				  clear-icon="clear"
 				  no-error-icon
 				  :rules="[ rules.required ]"
+
+				  tabindex="15"
 			  />
 
 			  <q-select
@@ -760,6 +962,8 @@ const sendApplication = async () => {
 				  clear-icon="clear"
 				  no-error-icon
 				  :rules="[ rules.required ]"
+
+				  tabindex="16"
 			  />
 
 			</div>
@@ -769,10 +973,11 @@ const sendApplication = async () => {
 			  <q-skeleton v-if="loading.marks" class="q-mt-xl q-mb-sm" square type="QInput" width="100%"></q-skeleton>
 
 			  <q-input
-				  v-for="mark in marksList"
+				  v-for="(mark, index) in marksList"
 				  class="col"
 				  v-model.number="marks.find( e => e.disciplineID === mark.disciplineID ).value"
 				  :label="mark.title"
+				  unmasked-value
 				  mask="#"
 				  fill-mask="_"
 				  clearable
@@ -780,6 +985,8 @@ const sendApplication = async () => {
 				  no-error-icon
 				  :rules="[ rules.mark, rules.required ]"
 				  hint="Оценка по предмету"
+
+				  :tabindex="17 + index"
 			  />
 
 			</div>
@@ -870,6 +1077,8 @@ const sendApplication = async () => {
 
 				  :loading="groupsStore.isLoading"
 				  :disable="groupsStore.isLoading || groupsStore.isError"
+
+				  tabindex="1"
 			  />
 
 			  <q-select
@@ -893,6 +1102,8 @@ const sendApplication = async () => {
 
 				  :loading="socialStatusesStore.isLoading"
 				  :disable="socialStatusesStore.isLoading || socialStatusesStore.isError"
+
+				  tabindex="2"
 			  />
 
 			  <q-toggle
@@ -903,6 +1114,8 @@ const sendApplication = async () => {
 				  color="green"
 				  unchecked-icon="clear"
 				  true-value="true"
+
+				  tabindex="3"
 			  />
 
 			</div>
@@ -925,7 +1138,7 @@ const sendApplication = async () => {
 				  @removed=" ( files ) => removeFileFromStash( extraFiles, files ) "
 			  />
 			</div>
-			<div class="text-caption text-grey">* максимальный размер одного файла 3МБ</div>
+			<div class="text-caption text-grey">* необязательно | максимальный размер одного файла 3МБ</div>
 			<div class="text-blue-5 cursor-pointer text-caption" @click="extraFilesDialog = true">Какие файлы можно
 			  прикрепить?
 			</div>
