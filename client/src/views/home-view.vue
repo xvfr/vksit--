@@ -312,7 +312,7 @@ watch( selectedSpecializations, ( value ) => toggleLocalStorage( 'selectedSpecia
 watch( selectedSocialStatuses, ( value ) => toggleLocalStorage( 'selectedSocialStatuses', JSON.stringify( value ) ) )
 watch( dormitory, ( value ) => toggleLocalStorage( 'dormitory', value ) )
 
-// remove files from quploader stash
+// remove files from q-uploader stash
 
 const removeFileFromStash = ( stash : any, files : any[] ) => {
 	for ( const file of files ) {
@@ -348,7 +348,7 @@ const sendApplication = async () => {
 	if ( !phoneNumber.value || !/\(\d{3}\)\s\d{3}\s-\s\d{4}/.test( phoneNumber.value ) )
 		errorsCount++
 
-	if ( !email.value || !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test( email.value ) )
+	if ( !email.value || !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/.test( email.value ) )
 		errorsCount++
 
 	if ( errorsCount ) {
@@ -684,7 +684,7 @@ const sendApplication = async () => {
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.aboutFormRef, 'aboutMe' ), $refs.stepper.next() "
+				@click=" validateForm( $refs.aboutFormRef, 'aboutMe' ) ? $refs.stepper.next() : null "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -1032,8 +1032,7 @@ const sendApplication = async () => {
 
 				  :options="groupsStore.groups"
 				  option-label="name"
-				  option-value="shortName"
-				  emit-value
+				  option-value="groupID"
 
 				  :error="groupsStore.isError"
 				  :error-message="groupsStore.isError ? 'Не удалось загрузить список специальностей' : null"
@@ -1048,7 +1047,17 @@ const sendApplication = async () => {
 
 				  :loading="groupsStore.isLoading"
 				  :disable="groupsStore.isLoading || groupsStore.isError"
-			  />
+			  >
+				<template v-slot:selected-item="scope">
+				  <q-chip
+					  removable
+					  dense
+					  @remove="scope.removeAtIndex(scope.index)"
+				  >
+					{{ scope.opt.shortName }}
+				  </q-chip>
+				</template>
+			  </q-select>
 
 			  <q-select
 				  class="col"
