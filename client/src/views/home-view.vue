@@ -44,7 +44,9 @@ const
 	certificateNumber = ref<null | number>( localStorage.certificateNumber || null ),
 	schoolName = ref<null | string>( localStorage.schoolName || null ),
 	endSchoolYear = ref<null | number>( localStorage.endSchoolYear || null ),
-	marks = reactive( localStorage.marks ? JSON.parse( localStorage.marks ) : [] ),
+	// marks = reactive( localStorage.marks ? JSON.parse( localStorage.marks ) : [] ),
+	marks = reactive<{ disciplineID : number, value : null | number }[]>( localStorage.marks ? JSON.parse( localStorage.marks ) : [] ),
+	marksList = ref<{ disciplineID : number, title : string }[]>( [] ),
 	certificateScan = reactive<object[]>( [] ),
 
 	// 4 step
@@ -92,9 +94,6 @@ const
 
 	possibleEndSchoolYears = Array( 5 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i ),
 
-	// TODO :: change any type
-	marksList = ref<any[]>( [] ),
-
 	stepper = ref(),
 
 	aboutFormRef = ref(),
@@ -114,9 +113,19 @@ watch( passportScan, val => console.log( val ) )
 			{ data : { items } } = await api.get( 'disciplines' ),
 
 			disciplines = items.map( ( e : any ) => ( {
-				discipline_id : e.discipline_id,
+				disciplineID : e.discipline_id,
 				title : e.name
 			} ) )
+
+		for ( const dis of disciplines ) {
+
+			if ( !marks.find( e => e.disciplineID === dis.disciplineID ) )
+				marks.push( {
+					disciplineID : dis.disciplineID,
+					value : null
+				} )
+
+		}
 
 		marksList.value.push( ...disciplines )
 		loading.marks = false
@@ -279,25 +288,25 @@ const removeFileFromStash = ( stash : any, files : any[] ) => {
 
 const sendApplication = async () => {
 
-	await nextTick( () => stepper.value.goTo( 'aboutMe' ) )
+	loading.page = true
 
-	if ( validateForm( aboutFormRef.value, 'aboutMe' ) ) {
+	if ( validateForm( finishFormRef.value, 'finish' ) ) {
 
-		await nextTick( () => stepper.value.goTo( 'passport' ) )
+		await nextTick( () => stepper.value.goTo( 'aboutMe' ) )
 
-		if ( passportScan.length )
-			$q.notify( 'Прикрепите сканы паспорта' )
-		else if ( validateForm( passportFormRef.value, 'passport' ) ) {
+		if ( validateForm( aboutFormRef.value, 'aboutMe' ) ) {
 
-			await nextTick( () => stepper.value.goTo( 'certificate' ) )
+			await nextTick( () => stepper.value.goTo( 'passport' ) )
 
-			if ( certificateScan.length )
-				$q.notify( 'Прикрепите сканы аттестата' )
-			else if ( validateForm( certificateFormRef.value, 'certificate' ) ) {
+			if ( passportScan.length )
+				$q.notify( 'Прикрепите сканы паспорта' )
+			else if ( validateForm( passportFormRef.value, 'passport' ) ) {
 
-				if ( validateForm( finishFormRef.value, 'finish' ) ) {
+				await nextTick( () => stepper.value.goTo( 'certificate' ) )
 
-					loading.page = true
+				if ( certificateScan.length )
+					$q.notify( 'Прикрепите сканы аттестата' )
+				else if ( validateForm( certificateFormRef.value, 'certificate' ) ) {
 
 					// all is valid
 
@@ -323,19 +332,23 @@ const sendApplication = async () => {
 					for ( const scan of passportScan as any )
 						data.append( 'passportScan', scan )
 
-					// data.append( 'passportScan', passportScan[ 0 ] ) // will be array
-					// data.append( 'passportScan', passportScan[ 1 ] )
+					// certificateNumber
+					// schoolName
+					// endSchoolYear
+					// marks
+					// certificateScan
+
+					// selectedSpecializations
+					// selectedSocialStatuses
+					// dormitory
+					// extraFiles
 
 					// const res = await api.post( '/abiturients', data )
-					//
 					// console.log( res )
 
 					setTimeout( () => {
-
 						nextTick( () => stepper.value.goTo( 'finish' ) )
-
 						loading.page = false
-
 					}, 3000 )
 
 				}
@@ -758,7 +771,7 @@ const sendApplication = async () => {
 			  <q-input
 				  v-for="mark in marksList"
 				  class="col"
-				  v-model.number="marks[mark.discipline_id]"
+				  v-model.number="marks.find( e => e.disciplineID === mark.disciplineID ).value"
 				  :label="mark.title"
 				  mask="#"
 				  fill-mask="_"
