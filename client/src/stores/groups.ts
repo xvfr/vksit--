@@ -11,6 +11,8 @@ interface Group {
 
 export const useGroups = defineStore( 'groups', {
 
+	// TODO :: cache to localstorage on some time
+
 	state () {
 		return {
 			groups : [] as Group[],

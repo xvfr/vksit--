@@ -278,9 +278,12 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 
 // on mounted
 
-onMounted( () => {
+onMounted( () =>
+
 	loading.page = false
-} )
+	// TODO :: compare local specializations with loaded
+
+)
 
 // save values to localstorage
 
