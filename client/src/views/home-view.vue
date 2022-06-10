@@ -218,9 +218,44 @@ const validateComponents = ( components : { validate () : boolean }[] ) => {
 const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certificate' | 'finish' ) => {
 
 	let
-		isValid = true
+		isValid = true,
+		scanError = false
 
-	if ( validateComponents( formRef.getValidationComponents() ) ) {
+	if ( step === 'passport' ) {
+
+		if ( !passportScan.length ) {
+
+			scanError = true
+
+			$q.notify( {
+				type : 'warning',
+				message : 'Прикрепите сканы паспорта',
+				timeout : 3000,
+				progress : true
+			} )
+
+		}
+
+	}
+
+	if ( step === 'certificate' ) {
+
+		if ( !certificateScan.length ) {
+
+			scanError = true
+
+			$q.notify( {
+				type : 'warning',
+				message : 'Прикрепите сканы аттестата',
+				timeout : 3000,
+				progress : true
+			} )
+
+		}
+
+	}
+
+	if ( validateComponents( formRef.getValidationComponents() ) && !scanError ) {
 
 		validation[ step ].isDone = true
 
@@ -231,6 +266,7 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 		validation[ step ].isError = true
 		$q.notify( {
 			message : 'Проверьте введенные данные',
+			caption : 'Исправьте ошибки и попробуйте снова',
 			type : 'negative'
 		} )
 
@@ -341,17 +377,8 @@ const sendApplication = async () => {
 	if ( !passportAddress.value )
 		errorsCount++
 
-	if ( !passportScan.length ) {
-
+	if ( !passportScan.length )
 		errorsCount++
-		$q.notify( {
-			type : 'warning',
-			message : 'Прикрепите сканы паспорта и попробуйте снова',
-			timeout : 3000,
-			progress : true
-		} )
-
-	}
 
 	if ( errorsCount ) {
 
@@ -395,21 +422,12 @@ const sendApplication = async () => {
 	}
 
 	for ( const mark of marks ) {
-		if ( isNaN( Number( mark ) ) )
+		if ( isNaN( Number( mark.value ) ) )
 			errorsCount++
 	}
 
-	if ( !certificateScan.length ) {
-
+	if ( !certificateScan.length )
 		errorsCount++
-		$q.notify( {
-			type : 'warning',
-			message : 'Прикрепите сканы аттестата и попробуйте снова',
-			timeout : 3000,
-			progress : true
-		} )
-
-	}
 
 	if ( errorsCount ) {
 
@@ -430,100 +448,53 @@ const sendApplication = async () => {
 
 	}
 
-	// first step
-
-	// if ( !lastName.value ) {
-	// 	errors.lastName = { isError : true, message : '* обязательное поле' }
-	// 	errorsCount++
-	// } else if ( !/^[А-ЯЁёа-я]+$/.test( lastName.value ) ) {
-	// 	errors.lastName = { isError : true, message : '* только кириллица, без пробелов' }
-	// 	errorsCount++
-	// } else
-	// 	errors.lastName = { isError : false }
-	//
-	// if ( !firstName.value ) {
-	// 	errors.firstName = { isError : true, message : '* обязательное поле' }
-	// 	errorsCount++
-	// } else if ( !/^[А-ЯЁёа-я]+$/.test( firstName.value ) ) {
-	// 	errors.firstName = { isError : true, message : '* только кириллица, без пробелов' }
-	// 	errorsCount++
-	// } else
-	// 	errors.firstName = { isError : false }
-	//
-	// if ( !!middleName.value && !/^[А-ЯЁёа-я]+$/.test( middleName.value ) ) {
-	// 	errors.middleName = { isError : true, message : '* только кириллица, без пробелов' }
-	// 	errorsCount++
-	// } else
-	// 	errors.middleName = { isError : false }
-	//
-	// // --
-	//
-	// if ( !birthDate.value ) {
-	// 	errors.birthDate = { isError : true, message : '* обязательное поле' }
-	// 	errorsCount++
-	// } else if ( new Date( birthDate.value ).getFullYear() >= new Date().getFullYear() - 10 ) {
-	// 	errors.birthDate = { isError : true, message : '* неверная дата рождения' }
-	// 	errorsCount++
-	// } else
-	// 	errors.birthDate = { isError : false }
-
-	// if ( !!middleName.value && !/^[А-ЯЁёа-я]+$/.test( middleName.value ) ) {
-	// 	errors.middleName = { isError : true, message : '* только кириллица, без пробелов' }
-	// 	errorsCount++
-	// } else
-	// 	errors.middleName = { isError : false }
-
-	// if ( errorsCount )
-	// 	await nextTick( () => stepper.value.goTo( 'aboutMe' ) )
-
-	// second step
-
-	// if ( passportScan.length )
-	// 	$q.notify( 'Прикрепите сканы паспорта' )
-
 	// all is valid
 
-	// const
-	// 	data = new FormData()
-	//
-	// data.append( 'firstName', firstName.value as any )
-	// data.append( 'lastName', lastName.value as any )
-	// data.append( 'middleName', middleName.value as any )
-	// data.append( 'birthDate', birthDate.value as any )
-	// data.append( 'address', address.value as any )
-	// data.append( 'phoneNumber', phoneNumber.value as any )
-	// data.append( 'email', email.value as any )
-	// for ( const ph of photo as any )
-	// 	data.append( 'photo', ph )
-	//
-	// data.append( 'passportSeries', passportSeries.value as any )
-	// data.append( 'passportNumber', passportNumber.value as any )
-	// data.append( 'passportIssuedDate', passportIssuedDate.value as any )
-	// data.append( 'passportIssuedBy', passportIssuedBy.value as any )
-	// data.append( 'passportAddress', passportAddress.value as any )
-	// data.append( 'passportCode', passportCode.value as any )
-	// for ( const scan of passportScan as any )
-	// 	data.append( 'passportScan', scan )
-	//
-	// data.append( 'certificateNumber', certificateNumber.value as any )
-	// data.append( 'schoolName', schoolName.value as any )
-	// data.append( 'endSchoolYear', endSchoolYear.value as any )
-	// data.append( 'marks', JSON.stringify( marks ) )
-	// for ( const scan of certificateScan as any )
-	// 	data.append( 'certificateScan', scan )
-	//
-	// // selectedSpecializations
-	// // selectedSocialStatuses
-	// // dormitory
-	// // extraFiles
-	//
-	// // const res = await api.post( '/abiturients', data )
-	// // console.log( res )
-	//
-	// setTimeout( () => {
-	// 	nextTick( () => stepper.value.goTo( 'finish' ) )
-	// 	// loading.page = false
-	// }, 3000 )
+	const
+		data = new FormData()
+
+	data.append( 'firstName', firstName.value as any )
+	data.append( 'lastName', lastName.value as any )
+	data.append( 'middleName', middleName.value as any )
+	data.append( 'birthDate', birthDate.value as any )
+	data.append( 'address', address.value as any )
+	data.append( 'phoneNumber', phoneNumber.value as any )
+	data.append( 'email', email.value as any )
+	for ( const file of photo as any )
+		data.append( 'photo', file )
+
+	data.append( 'passportSeries', passportSeries.value as any )
+	data.append( 'passportNumber', passportNumber.value as any )
+	data.append( 'passportIssuedDate', passportIssuedDate.value as any )
+	data.append( 'passportIssuedBy', passportIssuedBy.value as any )
+	data.append( 'passportAddress', passportAddress.value as any )
+	data.append( 'passportCode', passportCode.value as any )
+	for ( const file of passportScan as any )
+		data.append( 'passportScan', file )
+
+	data.append( 'certificateNumber', certificateNumber.value as any )
+	data.append( 'schoolName', schoolName.value as any )
+	data.append( 'endSchoolYear', endSchoolYear.value as any )
+	data.append( 'marks', JSON.stringify( marks ) )
+	for ( const file of certificateScan as any )
+		data.append( 'certificateScan', file )
+
+	data.append( 'selectedSpecializations', JSON.stringify( selectedSpecializations.value ) )
+	data.append( 'selectedSocialStatuses', JSON.stringify( selectedSocialStatuses.value ) )
+	data.append( 'dormitory', dormitory.value as any )
+	for ( const file of extraFiles as any )
+		data.append( 'extraFiles', file )
+
+	try {
+
+		const res = await api.post( '/abiturients', data )
+		console.log( res )
+
+	} catch ( e ) {
+		console.log( e )
+	}
+
+	loading.page = false
 
 }
 
@@ -900,7 +871,7 @@ const sendApplication = async () => {
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.passportFormRef, 'passport' ), $refs.stepper.next() "
+				@click=" validateForm( $refs.passportFormRef, 'passport' ) ? $refs.stepper.next() : null "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -1031,7 +1002,7 @@ const sendApplication = async () => {
 				outline
 				color="indigo-4"
 
-				@click=" validateForm( $refs.certificateFormRef, 'certificate' ), $refs.stepper.next() "
+				@click=" validateForm( $refs.certificateFormRef, 'certificate' ) ? $refs.stepper.next() : null "
 			>
 			  К следующему шагу
 			</q-btn>
@@ -1077,8 +1048,6 @@ const sendApplication = async () => {
 
 				  :loading="groupsStore.isLoading"
 				  :disable="groupsStore.isLoading || groupsStore.isError"
-
-				  tabindex="1"
 			  />
 
 			  <q-select
@@ -1102,8 +1071,6 @@ const sendApplication = async () => {
 
 				  :loading="socialStatusesStore.isLoading"
 				  :disable="socialStatusesStore.isLoading || socialStatusesStore.isError"
-
-				  tabindex="2"
 			  />
 
 			  <q-toggle
@@ -1114,8 +1081,6 @@ const sendApplication = async () => {
 				  color="green"
 				  unchecked-icon="clear"
 				  true-value="true"
-
-				  tabindex="3"
 			  />
 
 			</div>
