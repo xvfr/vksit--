@@ -1,22 +1,22 @@
 import express from 'express'
 import db from '../db'
+import ApiError from '../errors/api'
 
 const staffRouter = express.Router()
 
 staffRouter.post( '/auth', async ( req, res, next ) => {
 
-	const
-		{
-			login,
-			password
-		} = req.body
+	const {
+		login,
+		password
+	} = req.body
 
 	if ( !login || !password )
-		return res.status( 400 ).send( { error : 'Необходимы логин и пароль!' } )
+		return next( new ApiError( 400, 'Необходимы логин и пароль!' ) )
 
 	const
 		user = await db( 'staff' )
-			.first( 'staff_id')
+			.first( 'staff_id' )
 			.where( {
 				login,
 				password

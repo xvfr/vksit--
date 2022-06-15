@@ -649,22 +649,25 @@ const
 
 				<q-item-section side>
 				  <div class="text-grey-8 q-gutter-xs">
+
+					<q-badge>{{ statement.average_score.toFixed( 2 ) }}</q-badge>
+
 					<q-btn-group flat>
 					  <q-btn size="sm" flat dense round icon="print" />
 
-					<q-radio
-						size="xs"
-						label="Оригинал"
-						checked-icon="task_alt"
-						:val="statement.statement_id"
-						v-model="originalCertificateStatement"
-						:disable="!originalCertificateExists"
-					/>
+					  <q-radio
+						  size="xs"
+						  label="Оригинал"
+						  checked-icon="task_alt"
+						  :val="statement.statement_id"
+						  v-model="originalCertificateStatement"
+						  :disable="!originalCertificateExists"
+					  />
 					</q-btn-group>
 				  </div>
 				</q-item-section>
 
-				<q-badge floating>{{ statement.average_score.toFixed(2) }}</q-badge>
+				<!--				<q-badge floating>{{ statement.average_score.toFixed(2) }}</q-badge>-->
 
 			  </q-item>
 			</q-list>
@@ -686,23 +689,24 @@ const
 				<q-separator></q-separator>
 
 				<q-card-actions>
-				  <div class="text-grey-8 q-gutter-xs">
+				  <div class="text-grey-8 q-gutter-xs q-px-sm">
+					<q-badge>{{ statement.average_score.toFixed( 2 ) }}</q-badge>
+
 					<q-btn-group flat>
 					  <q-btn size="sm" flat dense round icon="print" />
 
-					<q-radio
-						size="xs"
-						label="Оригинал"
-						checked-icon="task_alt"
-						:val="statement.statement_id"
-						v-model="originalCertificateStatement"
-						:disable="!originalCertificateExists"
-					/>
+					  <q-radio
+						  size="xs"
+						  label="Оригинал"
+						  checked-icon="task_alt"
+						  :val="statement.statement_id"
+						  v-model="originalCertificateStatement"
+						  :disable="!originalCertificateExists"
+					  />
 					</q-btn-group>
 				  </div>
 				</q-card-actions>
 
-				<q-badge floating>{{ statement.average_score.toFixed(2)  }}</q-badge>
 
 			  </q-card>
 			</div>

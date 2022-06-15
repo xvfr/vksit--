@@ -4,6 +4,7 @@ import { useQuasar } from 'quasar'
 import api from '@/api'
 import { useGroups } from '@/stores/groups'
 import { useSocialStatuses } from '@/stores/social-statuses'
+import { AxiosError } from 'axios'
 
 const
 	$q = useQuasar(),
@@ -99,11 +100,11 @@ const
 	aboutFormRef = ref(),
 	passportFormRef = ref(),
 	certificateFormRef = ref(),
-	finishFormRef = ref()
+	finishFormRef = ref(),
+
+	errors = ref<{ field : string, message : string }[]>( [] )
 
 socialStatusesStore.get()
-
-watch( passportScan, val => console.log( val ) )
 
 ;( async () => {
 
@@ -280,7 +281,7 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 
 onMounted( () =>
 
-	loading.page = false
+		loading.page = false
 	// TODO :: compare local specializations with loaded
 
 )
@@ -328,6 +329,7 @@ const removeFileFromStash = ( stash : any, files : any[] ) => {
 const sendApplication = async () => {
 
 	loading.page = true
+	errors.value = []
 
 	let
 		date = new Date(),
@@ -348,7 +350,7 @@ const sendApplication = async () => {
 	if ( !address.value )
 		errorsCount++
 
-	if ( !phoneNumber.value || !/\(\d{3}\)\s\d{3}\s-\s\d{4}/.test( phoneNumber.value ) )
+	if ( !phoneNumber.value || !/^\(\d{3}\)\s\d{3}\s-\s\d{4}$/.test( phoneNumber.value ) )
 		errorsCount++
 
 	if ( !email.value || !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/.test( email.value ) )
@@ -458,7 +460,8 @@ const sendApplication = async () => {
 
 	data.append( 'firstName', firstName.value as any )
 	data.append( 'lastName', lastName.value as any )
-	data.append( 'middleName', middleName.value as any )
+	if ( !!middleName.value )
+		data.append( 'middleName', middleName.value as any )
 	data.append( 'birthDate', birthDate.value as any )
 	data.append( 'address', address.value as any )
 	data.append( 'phoneNumber', phoneNumber.value as any )
@@ -478,12 +481,12 @@ const sendApplication = async () => {
 	data.append( 'certificateNumber', certificateNumber.value as any )
 	data.append( 'schoolName', schoolName.value as any )
 	data.append( 'endSchoolYear', endSchoolYear.value as any )
-	data.append( 'marks', JSON.stringify( marks ) )
+	data.append( 'marksRaw', JSON.stringify( marks ) )
 	for ( const file of certificateScan as any )
 		data.append( 'certificateScan', file )
 
-	data.append( 'selectedSpecializations', JSON.stringify( selectedSpecializations.value ) )
-	data.append( 'selectedSocialStatuses', JSON.stringify( selectedSocialStatuses.value ) )
+	data.append( 'selectedSpecializationsRaw', ( selectedSpecializations.value as any )?.map( ( s : any ) => s.groupID ) )
+	data.append( 'selectedSocialStatusesRaw', ( selectedSocialStatuses.value as any )?.map( ( s : any ) => s.statusID ) )
 	data.append( 'dormitory', dormitory.value as any )
 	for ( const file of extraFiles as any )
 		data.append( 'extraFiles', file )
@@ -494,7 +497,28 @@ const sendApplication = async () => {
 		console.log( res )
 
 	} catch ( e ) {
-		console.log( e )
+
+		console.error( e )
+
+		if ( e instanceof AxiosError && e.response?.status === 400 ) {
+
+			for ( const err of e.response.data.error?.fields ) {
+				errors.value.push( { field : err.field, message : err.description } )
+			}
+
+		} else {
+
+			$q.notify( {
+				type : 'warning',
+				message : 'Произошла непредвиденная ошибка, попробуйте повторить попытку позже',
+				caption : 'Подробная информация об ошибке в консоли',
+				timeout : 5000,
+				position : 'center',
+				progress : true
+			} )
+
+		}
+
 	}
 
 	loading.page = false
@@ -508,6 +532,22 @@ const sendApplication = async () => {
 	<q-card-section>
 
 	  <div class="text-overline">Подача заявления</div>
+
+	  <q-slide-transition>
+		<q-banner inline-actions v-if="errors.length" class="bg-red-4 text-white">
+		  <div class="text-overline">В ходе выполнения запроса произошли следующие ошибки, исправьте их и попробуйте
+			снова
+		  </div>
+
+		  <div class="text-caption" v-for="error in errors">
+			{{ error.field }} - {{ error.message.charAt( 0 ).toLowerCase() + error.message.slice( 1 ) }}
+		  </div>
+
+		  <template v-slot:action>
+			<q-btn flat label="Закрыть" @click="errors = []" />
+		  </template>
+		</q-banner>
+	  </q-slide-transition>
 
 	  <q-stepper
 		  keep-alive
@@ -638,7 +678,7 @@ const sendApplication = async () => {
 				  no-error-icon
 				  :rules="[
 					  rules.required,
-					  v => !!v && /\(\d{3}\)\s\d{3}\s-\s\d{4}/.test(v) || '* обязательное поле'
+					  v => !!v && /^\(\d{3}\)\s\d{3}\s-\s\d{4}$/.test(v) || '* обязательное поле'
 				  ]"
 
 				  tabindex="6"
@@ -1024,7 +1064,7 @@ const sendApplication = async () => {
 
 		  <q-form ref="finishFormRef">
 
-			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg items-baseline'">
 
 			  <q-select
 				  class="col"
