@@ -11,6 +11,8 @@ const
 	$route = useRoute(),
 	$router = useRouter(),
 
+	API_BASE_URI = import.meta.env.VITE_API_BASE_URI,
+
 	groupsStore = useGroups(),
 	socialStatusesStore = useSocialStatuses(),
 
@@ -48,7 +50,7 @@ const
 
 	selectedSpecializations = ref<null | object[]>( [] ),
 	selectedSocialStatuses = ref<null | object[]>( [] ),
-	dormitory = ref<null | boolean>( false ),
+	dormitory = ref<boolean>( false ),
 	extraFiles = reactive<object[]>( [] ),
 	extraFilesRef = ref(),
 
@@ -137,16 +139,6 @@ const
 
 } )()
 
-;( async () => {
-
-	// const
-	// 	{ data } = await api.get( 'abiturients/1/photos/1', { responseType : 'blob' } ),
-	// 	file = new File( [ data ], '1-1', { type : data.type } )
-	//
-	// photoRef.value.addFiles( [ file ] )
-
-} )()
-
 </script>
 
 <template>
@@ -178,7 +170,7 @@ const
 			  <q-btn flat color="positive" class="full-width text-caption" size="sm">
 				Одобрено
 			  </q-btn>
-			  <q-btn flat color="primary" class="full-width text-caption" size="sm" disable>
+			  <q-btn flat color="primary" class="full-width text-caption" size="sm">
 				Необходимо редактирование
 			  </q-btn>
 			  <q-btn flat color="negative" class="full-width text-caption" size="sm">
@@ -569,6 +561,8 @@ const
 				  use-chips
 			  />
 
+			  <!--		TODO :: сделать выбор статуса как в основной форме	  -->
+
 			  <q-select
 				  class="col"
 				  label="Социальный статус"
@@ -585,8 +579,6 @@ const
 				  use-chips
 			  />
 
-			  <!--		TODO :: сделать выбор статуса как в основной форме	  -->
-
 			  <q-toggle
 				  class="col-auto"
 				  v-model="dormitory"
@@ -594,7 +586,6 @@ const
 				  checked-icon="check"
 				  color="green"
 				  unchecked-icon="clear"
-				  true-value="true"
 			  />
 
 			</div>
@@ -761,6 +752,7 @@ const
 		  >
 
 			<q-card flat>
+
 			  <q-tabs
 				  v-model="documentsTab"
 				  dense
@@ -784,7 +776,8 @@ const
 
 				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents?.photo">
 					<q-card>
-					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
+					  <q-img
+						  :src="`${API_BASE_URI}/abiturients/${abiturientID}/photos/${documents?.photo}`">
 						<div class="absolute-top text-overline text-center">
 						  Фото (#{{ documents?.photo }})
 						</div>
@@ -807,7 +800,7 @@ const
 
 				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.passport.length">
 					<q-card v-for="file in documents.passport">
-					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
+					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/passports/${file}`">
 						<div class="absolute-top text-overline text-center">
 						  Паспорт (#{{ file }})
 						</div>
@@ -830,7 +823,7 @@ const
 
 				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.certificate.length">
 					<q-card v-for="file in documents.certificate">
-					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
+					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/certificates/${file}`">
 						<div class="absolute-top text-overline text-center">
 						  Аттестат (#{{ file }})
 						</div>
@@ -853,7 +846,7 @@ const
 
 				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.extra.length">
 					<q-card v-for="file in documents.extra">
-					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
+					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/extra/${file}`">
 						<div class="absolute-top text-overline text-center">
 						  Дополнительный файл (#{{ file }})
 						</div>

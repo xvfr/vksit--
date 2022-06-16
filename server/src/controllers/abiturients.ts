@@ -3,6 +3,7 @@ import db from '../db'
 import path from 'path'
 import ApiError from '../errors/api'
 import disciplines from './disciplines'
+import * as fs from 'fs'
 
 const
 	abiturientsRouter = express.Router()
@@ -207,9 +208,19 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 abiturientsRouter.get( '/:abiturientID/:fileType/:fileID', async ( req, res, next ) => {
 
 	const
-		{ fileType } = req.params
+		{
+			abiturientID,
+			fileID,
+			fileType
+		} = req.params
 
-	res.sendFile( path.join( fileType, '1-1.jpg' ), { root : path.join( __dirname, '..', '..', 'uploads' ) } )
+	if ( ![ 'photos', 'passports', 'certificates', 'extra' ].includes( fileType ) )
+		return next( new ApiError( 400, 'Bad file type' ) )
+
+	if ( !fs.existsSync( path.join( __dirname, '..', '..', 'uploads', fileType, `${ fileID }-${ abiturientID }.jpg` ) ) )
+		return res.sendStatus( 404 )
+
+	res.sendFile( path.join( fileType, `${ fileID }-${ abiturientID }.jpg` ), { root : path.join( __dirname, '..', '..', 'uploads' ) } )
 
 } )
 
@@ -676,7 +687,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 				let i = 0
 
 				for ( const scan of passportScan ) {
-					await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileIDs[ i ].file_id }-${ passportID }.jpg` ) )
+					await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileIDs[ i ].file_id }-${ abiturientID }.jpg` ) )
 					i++
 				}
 
@@ -708,7 +719,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 				let i = 0
 
 				for ( const scan of certificateScan ) {
-					await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileIDs[ i ].file_id }-${ passportID }.jpg` ) )
+					await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileIDs[ i ].file_id }-${ abiturientID }.jpg` ) )
 					i++
 				}
 
@@ -742,7 +753,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 					let i = 0
 
 					for ( const scan of extraFiles ) {
-						await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'extra', `${ fileIDs[ i ].file_id }-${ passportID }.jpg` ) )
+						await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'extra', `${ fileIDs[ i ].file_id }-${ abiturientID }.jpg` ) )
 						i++
 					}
 
