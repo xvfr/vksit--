@@ -235,6 +235,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 			passportIssuedDate,
 			passportIssuedBy,
 			passportCode,
+			birthPlace,
 			passportAddress,
 
 			certificateNumber,
@@ -374,6 +375,14 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 	else if ( !/^\d{6}$/.test( passportCode ) )
 		error.add( 'Код подразделения', 'Некорректный код' )
+
+	// birthPlace verify
+
+	if ( !birthPlace.trim() )
+		error.add( 'Место рождения', 'Обязательное поле' )
+
+	else if ( birthPlace.length > 50 )
+		error.add( 'Место рождения', 'Максимальная длина 120 символов' )
 
 	// passportAddress verify
 
@@ -572,6 +581,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 						issued_by : passportIssuedBy,
 						issued_date : passportIssuedDate,
 						registration_address : passportAddress,
+						birth_place : birthPlace,
 						code : passportCode
 					} )
 

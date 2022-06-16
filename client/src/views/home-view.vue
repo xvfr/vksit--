@@ -35,6 +35,7 @@ const
 	passportNumber = ref<null | number>( localStorage.passportNumber || null ),
 	passportIssuedDate = ref<null | string>( localStorage.passportIssuedDate || null ),
 	passportIssuedBy = ref<null | string>( localStorage.passportIssuedBy || null ),
+	birthPlace = ref<null | string>( localStorage.birthPlace || null ),
 	passportAddress = ref<null | string>( localStorage.passportAddress || null ),
 	passportAddressEqual = ref( false ),
 	passportCode = ref<null | string>( localStorage.passportCode || null ),
@@ -313,6 +314,7 @@ watch( passportSeries, ( value ) => toggleLocalStorage( 'passportSeries', value 
 watch( passportNumber, ( value ) => toggleLocalStorage( 'passportNumber', value ) )
 watch( passportIssuedDate, ( value ) => toggleLocalStorage( 'passportIssuedDate', value ) )
 watch( passportIssuedBy, ( value ) => toggleLocalStorage( 'passportIssuedBy', value ) )
+watch( birthPlace, ( value ) => toggleLocalStorage( 'birthPlace', value ) )
 watch( passportAddress, ( value ) => toggleLocalStorage( 'passportAddress', value ) )
 watch( passportCode, ( value ) => toggleLocalStorage( 'passportCode', value ) )
 
@@ -482,6 +484,7 @@ const sendApplication = async () => {
 	data.append( 'passportNumber', passportNumber.value as any )
 	data.append( 'passportIssuedDate', passportIssuedDate.value as any )
 	data.append( 'passportIssuedBy', passportIssuedBy.value as any )
+	data.append( 'birthPlace', birthPlace.value as any )
 	data.append( 'passportAddress', passportAddress.value as any )
 	data.append( 'passportCode', passportCode.value as any )
 	for ( const file of passportScan as any )
@@ -862,6 +865,21 @@ const rejectFiles = ( entities : { failedPropValidation : string, file : File }[
 			  />
 
 			  <q-input
+				  class="col-3"
+				  v-model="birthPlace"
+				  label="Место рождения"
+				  maxlength="50"
+				  counter
+				  clearable
+				  autogrow
+				  clear-icon="clear"
+				  no-error-icon
+				  :rules="[ rules.required ]"
+
+				  tabindex="12"
+			  />
+
+			  <q-input
 				  class="col-2"
 				  v-model="passportCode"
 				  label="Код подразделения"
@@ -876,7 +894,7 @@ const rejectFiles = ( entities : { failedPropValidation : string, file : File }[
 					  v => !!v && v.length === 6 || '* обязательное поле'
 				  ]"
 
-				  tabindex="12"
+				  tabindex="13"
 			  />
 
 			</div>
@@ -895,7 +913,7 @@ const rejectFiles = ( entities : { failedPropValidation : string, file : File }[
 				  no-error-icon
 				  :rules="[ rules.required ]"
 
-				  tabindex="12"
+				  tabindex="14"
 			  >
 				<template v-slot>
 				  <q-checkbox
@@ -904,7 +922,7 @@ const rejectFiles = ( entities : { failedPropValidation : string, file : File }[
 					  dense
 					  label="Совпадает с адресом проживания"
 
-					  tabindex="13"
+					  tabindex="15"
 				  />
 				</template>
 			  </q-input>
