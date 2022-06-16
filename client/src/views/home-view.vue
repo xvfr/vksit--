@@ -45,7 +45,6 @@ const
 	certificateNumber = ref<null | number>( localStorage.certificateNumber || null ),
 	schoolName = ref<null | string>( localStorage.schoolName || null ),
 	endSchoolYear = ref<null | number>( localStorage.endSchoolYear || null ),
-	// marks = reactive( localStorage.marks ? JSON.parse( localStorage.marks ) : [] ),
 	marks = reactive<{ disciplineID : number, value : null | number }[]>( localStorage.marks ? JSON.parse( localStorage.marks ) : [] ),
 	marksList = ref<{ disciplineID : number, title : string }[]>( [] ),
 	certificateScan = reactive<object[]>( [] ),
@@ -118,6 +117,14 @@ socialStatusesStore.get()
 				title : e.name
 			} ) )
 
+	  /*
+
+	   TODO :: rework load from localstorage saved marks
+
+	   TODO :: set load disciplines in store
+
+	   */
+
 		for ( const dis of disciplines ) {
 
 			if ( !marks.find( e => e.disciplineID === dis.disciplineID ) )
@@ -132,6 +139,8 @@ socialStatusesStore.get()
 		loading.marks = false
 
 	} catch ( e ) {
+
+		console.error( e )
 
 		$q.notify( {
 			progress : true,
@@ -525,6 +534,38 @@ const sendApplication = async () => {
 
 }
 
+const rejectFiles = ( entities : { failedPropValidation : string, file : File }[] ) => {
+
+	for ( const entity of entities ) {
+
+		if ( entity.failedPropValidation === 'max-file-size' ) {
+
+			$q.notify( {
+				type : 'warning',
+				message : 'Превышен максимальный размер файла',
+				caption : entity.file.name + ` (${ ( entity.file.size / 1024 / 1024 ).toFixed( 2 ) }MB)`,
+				timeout : 5000,
+				position : 'bottom-left',
+				progress : true
+			} )
+
+		} else {
+
+			$q.notify( {
+				type : 'warning',
+				message : 'Не удалось добавить файл',
+				caption : entity.file.name,
+				timeout : 5000,
+				position : 'bottom-left',
+				progress : true
+			} )
+
+		}
+
+	}
+
+}
+
 </script>
 
 <template>
@@ -711,6 +752,7 @@ const sendApplication = async () => {
 				  accept="image/*"
 
 				  max-file-size="3145728"
+				  @rejected="rejectFiles"
 
 				  @added=" ( files ) => photo.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( photo, files ) "
@@ -888,6 +930,7 @@ const sendApplication = async () => {
 				  accept="image/*"
 
 				  max-file-size="3145728"
+				  @rejected="rejectFiles"
 
 				  @added=" ( files ) => passportScan.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( passportScan, files ) "
@@ -1018,6 +1061,7 @@ const sendApplication = async () => {
 				  accept="image/*"
 
 				  max-file-size="3145728"
+				  @rejected="rejectFiles"
 
 				  @added=" ( files ) => certificateScan.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( certificateScan, files ) "
@@ -1150,6 +1194,7 @@ const sendApplication = async () => {
 				  accept="image/*"
 
 				  max-file-size="3145728"
+				  @rejected="rejectFiles"
 
 				  @added=" ( files ) => extraFiles.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( extraFiles, files ) "

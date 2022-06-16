@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, provide, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 
@@ -74,6 +74,8 @@ const
 	abiturients = ref<object[]>( [] ),
 
 	pagination = ref<any>( {
+		sortBy : 'abiturientID',
+		descending : true,
 		page : 1,
 		rowsPerPage : 3,
 		rowsNumber : 20
@@ -99,24 +101,21 @@ const onRequest = async ( props : any ) => {
 				}
 			} )
 
-		const
-			formattedAbiturients = items.map( ( e : any ) => ( {
-				abiturientID : e.abiturient_id,
-				fullName : e.middle_name ? `${ e.last_name } ${ e.first_name } ${ e.middle_name }` : `${ e.last_name } ${ e.first_name }`,
-				createdAt : new Date().toLocaleDateString(),
-				phoneNumber : '+7 ' + e.phone,
-				email : e.email,
+		abiturients.value = items.map( ( e : any ) => ( {
+			abiturientID : e.abiturient_id,
+			fullName : e.middle_name ? `${ e.last_name } ${ e.first_name } ${ e.middle_name }` : `${ e.last_name } ${ e.first_name }`,
+			createdAt : new Date( e.created_at ).toLocaleString( 'ru' ),
+			phoneNumber : '+7 ' + e.phone,
+			email : e.email,
 
-				comment : e.comment,
+			comment : e.comment,
 
-				status : {
-					id : e.status_id,
-					title : e.title,
-					color : e.color
-				}
-			} ) )
-
-		abiturients.value = formattedAbiturients
+			status : {
+				id : e.status_id,
+				title : e.title,
+				color : e.color
+			}
+		} ) )
 
 		pagination.value.page = page
 		pagination.value.rowsPerPage = rowsPerPage
