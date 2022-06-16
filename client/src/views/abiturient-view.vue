@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import { useGroups } from '@/stores/groups'
@@ -126,7 +126,7 @@ const
 
 		status.value = response.abiturient.status
 		documents.value = response.files
-		
+
 		dormitory.value = response.abiturient.dormitory
 
 		// TODO :: add response to cache for use latter (check changed field)
@@ -175,11 +175,15 @@ const
 			<q-btn icon="more_vert" flat round size="xs" />
 
 			<q-menu cover transition-show="scale" transition-hide="scale" square max-width="15rem">
-			  <q-btn flat color="positive" class="full-width text-caption" size="sm">Одобрено</q-btn>
-			  <q-btn flat color="warning" class="full-width text-caption" size="sm">На рассмотрении</q-btn>
-			  <q-btn flat color="primary" class="full-width text-caption" size="sm" disable>Необходимо редактирование
+			  <q-btn flat color="positive" class="full-width text-caption" size="sm">
+				Одобрено
 			  </q-btn>
-			  <q-btn flat color="negative" class="full-width text-caption" size="sm">Отклонено</q-btn>
+			  <q-btn flat color="primary" class="full-width text-caption" size="sm" disable>
+				Необходимо редактирование
+			  </q-btn>
+			  <q-btn flat color="negative" class="full-width text-caption" size="sm">
+				Отклонено
+			  </q-btn>
 			</q-menu>
 		  </q-btn-group>
 		</q-badge>

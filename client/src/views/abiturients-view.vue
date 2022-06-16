@@ -77,8 +77,8 @@ const
 		sortBy : 'abiturientID',
 		descending : true,
 		page : 1,
-		rowsPerPage : 3,
-		rowsNumber : 20
+		rowsPerPage : 25,
+		rowsNumber : 1
 	} )
 
 const onRequest = async ( props : any ) => {
@@ -142,15 +142,15 @@ const onRequest = async ( props : any ) => {
 
 onMounted( async () => {
 
-	const
-		{ data : { count } } = await api('abiturients/count')
-
-	pagination.value.rowsNumber = count
-
 	onRequest( {
 		pagination : pagination.value,
 		filter : undefined
 	} )
+
+	const
+		{ data : { count } } = await api('abiturients/count')
+
+	pagination.value.rowsNumber = count
 
 } )
 
@@ -197,8 +197,8 @@ onMounted( async () => {
 
 		<template v-slot:body-cell-status="props">
 		  <q-td key="status" :props="props">
-			<q-badge outline align="middle" :color="props.row.status.color || 'grey'">
-			  {{ props.row.status.title || 'Не установлен' }}
+			<q-badge outline align="middle" :color="props.row.status.color">
+			  {{ props.row.status.title }}
 			</q-badge>
 		  </q-td>
 		</template>
@@ -295,6 +295,7 @@ onMounted( async () => {
 	<router-view />
 
   </q-card>
+
 </template>
 
 <style lang="scss" scoped>

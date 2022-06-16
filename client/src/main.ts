@@ -5,7 +5,7 @@ import router from './router'
 import { createPinia } from 'pinia'
 
 // quasar
-import { Notify, Quasar } from 'quasar'
+import { Loading, LoadingBar, Notify, Quasar } from 'quasar'
 import quasarLang from 'quasar/lang/ru'
 import '@quasar/extras/material-icons/material-icons.css'
 import 'quasar/dist/quasar.css'
@@ -16,7 +16,13 @@ app.use( createPinia() )
 app.use( router )
 app.use( Quasar, {
 	plugins : {
-		Notify
+		Notify,
+		LoadingBar,
+		Loading
+	},
+	config : {
+		loadingBar : { position : 'bottom', size : '.25rem' },
+		loading : { spinnerSize : '40' }
 	},
 	lang : quasarLang
 } )

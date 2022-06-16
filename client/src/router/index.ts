@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import { Loading } from 'quasar'
+
 // views
 
 import HomeView from '../views/home-view.vue'
@@ -75,8 +77,17 @@ router.beforeEach( ( to, from ) => {
 		return '/'
 
 	if ( to.meta.requiresAuth && !authStore.isAuthorized )
-		return router.push( { name : 'login', query : Object.assign( from.query , { redirect : to.name } ) } )
+		return router.push( { name : 'login', query : Object.assign( from.query, { redirect : to.name } ) } )
 
+} )
+
+router.beforeResolve( ( to, from, next ) => {
+	Loading.show()
+	next()
+} )
+
+router.afterEach( () => {
+	Loading.hide()
 } )
 
 export default router
