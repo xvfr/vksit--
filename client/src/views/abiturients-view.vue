@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provide, reactive, ref } from 'vue'
+import { onMounted, provide, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 
@@ -71,14 +71,33 @@ const
 		}
 	],
 
-	abiturients = ref<object[]>( [] )
+	abiturients = ref<object[]>( [] ),
 
-;( async () => {
+	pagination = ref<any>( {
+		page : 1,
+		rowsPerPage : 3,
+		rowsNumber : 20
+	} )
+
+const onRequest = async ( props : any ) => {
+
+	loading.applications = true
+
+	const
+		{ page, rowsPerPage, sortBy, descending } = props.pagination,
+		startRow = ( page - 1 ) * rowsPerPage
 
 	try {
 
 		const
-			{ data : { items } } = await api.get( 'abiturients' )
+			{ data : { items } } = await api.get( 'abiturients', {
+				params : {
+					limit : rowsPerPage,
+					offset : startRow,
+					orderBy : sortBy,
+					descending
+				}
+			} )
 
 		const
 			formattedAbiturients = items.map( ( e : any ) => ( {
@@ -97,7 +116,12 @@ const
 				}
 			} ) )
 
-		abiturients.value.push( ...formattedAbiturients )
+		abiturients.value = formattedAbiturients
+
+		pagination.value.page = page
+		pagination.value.rowsPerPage = rowsPerPage
+		pagination.value.sortBy = sortBy
+		pagination.value.descending = descending
 
 	} catch ( e ) {
 
@@ -115,7 +139,14 @@ const
 
 	loading.applications = false
 
-} )()
+}
+
+onMounted( () => {
+	onRequest( {
+		pagination : pagination.value,
+		filter : undefined
+	} )
+} )
 
 </script>
 
@@ -143,10 +174,13 @@ const
 
 		  :no-data-label="errors.applications ? 'Ошибка при получении данных' : 'Нет данных'"
 
-		  :pagination="{ rowsPerPage : 50 }"
+		  @row-dblclick=" ( evt, row ) => $router.push( { name : 'abiturient', params : { id : row.abiturientID } } ) "
 
-		  @row-dblclick=" ( evt, row, index ) => $router.push( { name : 'abiturient', params : { id : row.abiturientID } } ) "
+		  v-model:pagination="pagination"
+		  @request="onRequest"
 	  >
+
+		<!--	TODO :: check remove v-model (:pagination)	-->
 
 		<template v-slot:body-cell-abiturientID="props">
 		  <q-td key="statementID" :props="props">

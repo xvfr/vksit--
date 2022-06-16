@@ -16,7 +16,8 @@ abiturientsRouter.get( '/', async ( req, res, next ) => {
 	// TODO :: add pagination
 
 	const
-		{ offset, limit } = req.query
+		{ offset, limit, orderBy, descending } = req.query,
+		sortVector = descending === 'true' ? 'desc' : 'asc'
 
 	const
 		abiturients = db( 'abiturients as a' )
@@ -27,6 +28,22 @@ abiturientsRouter.get( '/', async ( req, res, next ) => {
 
 	isNaN( Number( offset ) ) || abiturients.offset( Number( offset ) )
 	isNaN( Number( limit ) ) || abiturients.limit( Number( limit ) )
+
+	switch ( orderBy ) {
+
+		case 'abiturientID':
+			abiturients.orderBy( 'a.abiturient_id', sortVector )
+			break
+
+		case 'status':
+			abiturients.orderBy( 'a.status_id', sortVector )
+			break
+
+		case 'createdAt':
+			abiturients.orderBy( 's.created_at', sortVector )
+			break
+
+	}
 
 	res.send( { items : await abiturients } )
 

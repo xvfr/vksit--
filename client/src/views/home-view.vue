@@ -1078,7 +1078,7 @@ const sendApplication = async () => {
 				  option-value="groupID"
 
 				  :error="groupsStore.isError"
-				  :error-message="groupsStore.isError ? 'Не удалось загрузить список специальностей' : null"
+				  :error-message="groupsStore.isError ? 'Не удалось загрузить список специальностей' : undefined"
 
 				  behavior="dialog"
 

@@ -57,7 +57,9 @@ const
 			field : 'sunday',
 			sortable : true
 		}
-	]
+	] as any
+
+// TODO :: change any type
 
 </script>
 
