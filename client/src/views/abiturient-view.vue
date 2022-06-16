@@ -4,8 +4,10 @@ import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import { useGroups } from '@/stores/groups'
 import { useSocialStatuses } from '@/stores/social-statuses'
+import { useQuasar } from 'quasar'
 
 const
+	$q = useQuasar(),
 	$route = useRoute(),
 	$router = useRouter(),
 
@@ -40,13 +42,7 @@ const
 	certificateNumber = ref<null | number>( null ),
 	schoolName = ref<null | string>( null ),
 	endSchoolYear = ref<null | number>( null ),
-	marks = reactive( {
-		math : null,
-		physics : null,
-		informatics : null,
-		foreign : null,
-		russian : null
-	} ),
+	marks = reactive<object[]>( [] ),
 	certificateScan = reactive<object[]>( [] ),
 	certificateScanRef = ref(),
 
@@ -59,7 +55,6 @@ const
 	documentsTab = ref( 'photo' ),
 
 	// TODO :: change any type
-	marksList = ref<any[]>( [] ),
 	statements = ref<any[]>( [] ),
 	originalCertificateStatement = ref( null ),
 	originalCertificateExists = ref( false ),
@@ -72,6 +67,8 @@ const
 		mark : ( v : number ) => v <= 5 && v >= 1 || 'введите корректное значение'
 	},
 
+	files = ref(),
+
 	errors = reactive( {
 		exists : false // is abit exists
 	} ),
@@ -82,9 +79,12 @@ socialStatusesStore.get()
 
 watch( passportAddressEqual, ( value ) => value && ( passportAddress.value = address.value ) )
 watch( currentStep, step => $router.push( { query : { step } } ) )
+watch( originalCertificateExists, exists => exists || ( originalCertificateStatement.value = null ) )
+
+// save abiturient
 
 const
-	saveAbiturient = () => {
+	saveAbiturient = async () => {
 		$router.replace( { name : 'abiturients' } )
 	}
 
@@ -114,6 +114,7 @@ const
 		certificateNumber.value = response.certificate.number
 		schoolName.value = response.certificate.school_name
 		endSchoolYear.value = response.certificate.end_school_year
+		marks.push( ...response.certificate.marks )
 
 		statements.value = response.statements
 		selectedSpecializations.value = response.statements.map( ( e : any ) => groupsStore.groups.find( g => g.groupID === e.group_id )?.shortName )
@@ -125,6 +126,7 @@ const
 			originalCertificateExists.value = true
 
 		status.value = response.abiturient.status
+		files.value = response.files
 
 		// TODO :: add response to cache for use latter (check changed field)
 
@@ -490,13 +492,13 @@ const
 			  />
 			</div>
 
-			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'" v-if="marksList.length">
+			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'" v-if="marks.length">
 
 			  <q-input
-				  v-for="mark in marksList"
+				  v-for="mark in marks"
 				  class="col"
-				  v-model.number="marks[mark.discipline_id]"
-				  :label="mark.title"
+				  v-model.number="mark.mark"
+				  :label="mark.name"
 				  mask="#"
 				  fill-mask="_"
 				  clearable
@@ -649,25 +651,24 @@ const
 
 				<q-item-section side>
 				  <div class="text-grey-8 q-gutter-xs">
-
-					<q-badge>{{ statement.average_score.toFixed( 2 ) }}</q-badge>
-
 					<q-btn-group flat>
 					  <q-btn size="sm" flat dense round icon="print" />
-
 					  <q-radio
 						  size="xs"
-						  label="Оригинал"
 						  checked-icon="task_alt"
 						  :val="statement.statement_id"
 						  v-model="originalCertificateStatement"
 						  :disable="!originalCertificateExists"
-					  />
+						  class="text-caption"
+					  >
+						Оригинал
+					  </q-radio>
 					</q-btn-group>
+					<q-badge class="q-ml-sm" align="middle" outline color="indigo-4">
+					  {{ statement.average_score.toFixed( 2 ) }}
+					</q-badge>
 				  </div>
 				</q-item-section>
-
-				<!--				<q-badge floating>{{ statement.average_score.toFixed(2) }}</q-badge>-->
 
 			  </q-item>
 			</q-list>
@@ -690,23 +691,24 @@ const
 
 				<q-card-actions>
 				  <div class="text-grey-8 q-gutter-xs q-px-sm">
-					<q-badge>{{ statement.average_score.toFixed( 2 ) }}</q-badge>
-
 					<q-btn-group flat>
 					  <q-btn size="sm" flat dense round icon="print" />
-
 					  <q-radio
 						  size="xs"
-						  label="Оригинал"
 						  checked-icon="task_alt"
 						  :val="statement.statement_id"
 						  v-model="originalCertificateStatement"
 						  :disable="!originalCertificateExists"
-					  />
+						  class="text-caption"
+					  >
+						Оригинал
+					  </q-radio>
 					</q-btn-group>
 				  </div>
+				  <q-badge color="indigo-4" outline align="middle">
+					{{ statement.average_score.toFixed( 2 ) }}
+				  </q-badge>
 				</q-card-actions>
-
 
 			  </q-card>
 			</div>
@@ -775,11 +777,11 @@ const
 
 				<q-tab-panel name="photo">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="files?.photo">
 					<q-card>
 					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
 						<div class="absolute-top text-overline text-center">
-						  Фото
+						  Фото (#{{ files?.photo }})
 						</div>
 					  </q-img>
 					  <q-card-actions>
@@ -791,16 +793,18 @@ const
 					  </q-card-actions>
 					</q-card>
 				  </div>
+
+				  <q-banner dense v-else>Нет доступных файлов</q-banner>
 
 				</q-tab-panel>
 
 				<q-tab-panel name="passport">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'">
-					<q-card v-for="i in 4">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="files.passport.length">
+					<q-card v-for="file in files.passport">
 					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
 						<div class="absolute-top text-overline text-center">
-						  Паспорт ({{ i }})
+						  Паспорт (#{{ file }})
 						</div>
 					  </q-img>
 					  <q-card-actions>
@@ -812,16 +816,18 @@ const
 					  </q-card-actions>
 					</q-card>
 				  </div>
+
+				  <q-banner dense v-else>Нет доступных файлов</q-banner>
 
 				</q-tab-panel>
 
 				<q-tab-panel name="certificate">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'">
-					<q-card v-for="i in 3">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="files.certificate.length">
+					<q-card v-for="file in files.certificate">
 					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
 						<div class="absolute-top text-overline text-center">
-						  Аттестат ({{ i }})
+						  Аттестат (#{{ file }})
 						</div>
 					  </q-img>
 					  <q-card-actions>
@@ -834,10 +840,31 @@ const
 					</q-card>
 				  </div>
 
+				  <q-banner dense v-else>Нет доступных файлов</q-banner>
+
 				</q-tab-panel>
 
 				<q-tab-panel name="extra">
-				  <q-banner dense>Нет доступных файлов</q-banner>
+
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="files.extra.length">
+					<q-card v-for="file in files.extra">
+					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
+						<div class="absolute-top text-overline text-center">
+						  Дополнительный файл (#{{ file }})
+						</div>
+					  </q-img>
+					  <q-card-actions>
+						<q-btn-group flat class="full-width" spread>
+						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
+						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
+						  <q-btn size="xs" flat dense round icon="delete">удалить</q-btn>
+						</q-btn-group>
+					  </q-card-actions>
+					</q-card>
+				  </div>
+
+				  <q-banner dense v-else>Нет доступных файлов</q-banner>
+
 				</q-tab-panel>
 
 			  </q-tab-panels>
@@ -850,7 +877,7 @@ const
 	  </q-card-section>
 
 	  <q-card-actions :class="$q.screen.lt.sm || 'row q-gutter-lg'">
-		<q-btn class="col" dense outline color="primary">Скачать все файлы</q-btn>
+		<q-btn class="col" dense outline color="primary" disable>Скачать все файлы</q-btn>
 	  </q-card-actions>
 
 	</q-card>

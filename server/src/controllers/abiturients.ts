@@ -3,9 +3,6 @@ import db from '../db'
 import path from 'path'
 import ApiError from '../errors/api'
 import disciplines from './disciplines'
-import { markAsUntransferable } from 'worker_threads'
-import Api from '../errors/api'
-import { isArray } from 'util'
 
 const
 	abiturientsRouter = express.Router()
@@ -68,11 +65,30 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 	statements.forEach( s => s.original_certificate = !!s.original_certificate )
 
 	const
-		marks = await db( 'xref_abiturients_disciplines_marks' )
-			.select( 'discipline_id', 'mark' )
+		marks = await db( 'xref_abiturients_disciplines_marks as dm' )
+			.select( 'dm.discipline_id', 'dm.mark', 'd.name' )
+			.leftJoin( 'disciplines as d', 'd.discipline_id', 'dm.discipline_id' )
 			.where( 'abiturient_id', abiturientID )
 
-	// TODO :: get abit files ids
+	const
+		photoFile = await db( 'abiturients_photos' )
+			.first( 'file_id' )
+			.where( 'abiturient_id', abiturientID )
+
+	const
+		extraFiles = await db( 'abiturients_files' )
+			.select( 'file_id' )
+			.where( 'abiturient_id', abiturientID )
+
+	const
+		passportsFiles = await db( 'passports_files' )
+			.select( 'file_id' )
+			.where( 'passport_id', abiturient.passport_id )
+
+	const
+		certificatesFiles = await db( 'certificates_files' )
+			.select( 'file_id' )
+			.where( 'certificate_id', abiturient.certificate_id )
 
 	const
 		passport = {
@@ -92,6 +108,13 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 			end_school_year : abiturient.end_school_year,
 
 			marks
+		},
+
+		files = {
+			photo : photoFile?.file_id || null,
+			passport : passportsFiles.map( f => f.file_id ),
+			certificate : certificatesFiles.map( f => f.file_id ),
+			extra : extraFiles.map( f => f.file_id )
 		},
 
 		formattedAbiturient = {
@@ -115,12 +138,14 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 
 				comment : abiturient.comment
 			},
+
 			passport,
 			certificate,
 
 			social_statuses : socialStatuses.map( s => s.social_status_id ),
 
-			statements : statements
+			statements,
+			files
 		}
 
 	res.send( { items : [ formattedAbiturient ] } )
