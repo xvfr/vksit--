@@ -4,6 +4,8 @@ import path from 'path'
 import ApiError from '../errors/api'
 import disciplines from './disciplines'
 import { markAsUntransferable } from 'worker_threads'
+import Api from '../errors/api'
+import { isArray } from 'util'
 
 const
 	abiturientsRouter = express.Router()
@@ -67,7 +69,7 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 
 	const
 		marks = await db( 'xref_abiturients_disciplines_marks' )
-			.select( 'descipline_id', 'mark' )
+			.select( 'discipline_id', 'mark' )
 			.where( 'abiturient_id', abiturientID )
 
 	// TODO :: get abit files ids
@@ -171,7 +173,13 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 			selectedSocialStatusesRaw,
 			dormitory
 
-		} = req.body
+		} = req.body,
+		{
+			photo,
+			passportScan,
+			certificateScan,
+			extraFiles
+		} = req.files || {}
 
 	// ----------- basic
 
@@ -240,6 +248,18 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 	else if ( !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/.test( email ) )
 		error.add( 'E-mail', 'Некорректный e-mail' )
 
+	// photo verify
+
+	if ( photo ) {
+
+		if ( !( 'mimetype' in photo ) || !/^image\/.*$/.test( photo.mimetype ) )
+			error.add( 'Фото', 'Типом файла может быть только изображение' )
+
+		else if ( photo.size > 3145728 )
+			error.add( 'Фото', 'Максимальный размер файла 3МБ' )
+
+	}
+
 	// ----------- passport
 
 	// passportSeries verify
@@ -290,6 +310,37 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 	else if ( passportAddress.length > 120 )
 		error.add( 'Адрес регистрации', 'Максимальная длина 120 символов' )
 
+	// passport scan
+
+	if ( !passportScan || ( Array.isArray( passportScan ) && !passportScan.length ) )
+		error.add( 'Скан паспорта', 'Обязательное поле' )
+	else {
+
+		if ( Array.isArray( passportScan ) ) {
+
+			for ( const scan of passportScan ) {
+
+				if ( !( 'mimetype' in scan ) || !/^image\/.*$/.test( scan.mimetype ) )
+					error.add( `Скан паспорта (${ scan.name })`, 'Типом файла может быть только изображение' )
+
+				else if ( scan.size > 3145728 )
+					error.add( `Скан паспорта (${ scan.name })`, 'Максимальный размер файла 3МБ' )
+
+			}
+
+		} else {
+
+			if ( !( 'mimetype' in passportScan ) || !/^image\/.*$/.test( passportScan.mimetype ) )
+				error.add( 'Скан паспорта', 'Типом файла может быть только изображение' )
+
+			else if ( passportScan.size > 3145728 )
+				error.add( 'Скан паспорта', 'Максимальный размер файла 3МБ' )
+
+		}
+
+
+	}
+
 	// --------- certificate
 
 	// certificateNumber verify
@@ -336,15 +387,55 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 	if ( error.isEmpty() ) {
 
+		// check marks count
+
 		const
 			[ { marksCount } ] = await db( 'disciplines' )
 				.count( '* as marksCount' ) || {}
 
-		// check marks count db
+		if ( marks.length != marksCount )
+			error.add( 'Оценки', 'Заполнены не все оценки' )
 
-		// console.log( marks.length )
-		// console.log( marksCount )
-		// console.log( marks.length === marksCount )
+		// check passport number and series of approved abiturients
+
+		const
+			passportExists = await db( 'passports' )
+				.first( 1 )
+				.where( 'series', passportSeries )
+				.where( 'number', passportNumber )
+
+		if ( passportExists )
+			error.add( 'Паспорт', 'На данные серию и номер паспорта уже подано заявление' )
+
+	}
+
+	// certificate scan
+
+	if ( !certificateScan || ( Array.isArray( certificateScan ) && !certificateScan.length ) )
+		error.add( 'Скан аттестата', 'Обязательное поле' )
+	else {
+
+		if ( Array.isArray( certificateScan ) ) {
+
+			for ( const scan of certificateScan ) {
+
+				if ( !( 'mimetype' in scan ) || !/^image\/.*$/.test( scan.mimetype ) )
+					error.add( `Скан аттестата (${ scan.name })`, 'Типом файла может быть только изображение' )
+
+				else if ( scan.size > 3145728 )
+					error.add( `Скан аттестата (${ scan.name })`, 'Максимальный размер файла 3МБ' )
+
+			}
+
+		} else {
+
+			if ( !( 'mimetype' in certificateScan ) || !/^image\/.*$/.test( certificateScan.mimetype ) )
+				error.add( 'Скан аттестата', 'Типом файла может быть только изображение' )
+
+			else if ( certificateScan.size > 3145728 )
+				error.add( 'Скан аттестата', 'Максимальный размер файла 3МБ' )
+
+		}
 
 	}
 
@@ -363,110 +454,128 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 	if ( ![ 'true', 'false' ].includes( dormitory ) )
 		error.add( 'Общежитие', 'Неверное значение' )
 
+	// extras files verify
+
+	if ( extraFiles || Array.isArray( extraFiles ) ) {
+
+		if ( Array.isArray( extraFiles ) ) {
+
+			for ( const scan of extraFiles ) {
+
+				if ( !( 'mimetype' in scan ) || !/^image\/.*$/.test( scan.mimetype ) )
+					error.add( `Дополнительные файлы (${ scan.name })`, 'Типом файла может быть только изображение' )
+
+				else if ( scan.size > 3145728 )
+					error.add( `Дополнительные файлы ( (${ scan.name })`, 'Максимальный размер файла 3МБ' )
+
+			}
+
+		} else {
+
+			if ( !( 'mimetype' in extraFiles ) || !/^image\/.*$/.test( extraFiles.mimetype ) )
+				error.add( 'Дополнительные файлы', 'Типом файла может быть только изображение' )
+
+			else if ( extraFiles.size > 3145728 )
+				error.add( 'Дополнительные файлы', 'Максимальный размер файла 3МБ' )
+
+		}
+
+	}
+
 	// throw error if exists
 
 	if ( !error.isEmpty() )
 		return next( error )
 
-	// const ids = await db( 'statements' )
-	// 	.insert( [
-	// 		{
-	// 			abiturient_id : 1,
-	// 			group_id : 103,
-	// 			average_score : 1.23
-	// 		},
-	// 		{
-	// 			abiturient_id : 1,
-	// 			group_id : 2,
-	// 			average_score : 1.23
-	// 		}
-	// 	] )
-	// 	.onConflict()
-	// 	.ignore()
+	try {
 
-	// const
-	// 	passportID = await db( 'passports' )
-	// 		.insert( {
-	// 			series : passportSeries,
-	// 			number : passportNumber,
-	// 			issued_by : passportIssuedBy,
-	// 			issued_date : passportIssuedDate,
-	// 			registration_address : passportAddress,
-	// 			code : passportCode
-	// 		} )
-	//
-	// const
-	// 	certificateID = await db( 'certificates' )
-	// 		.insert( {
-	// 			number : certificateNumber,
-	// 			school_name : schoolName,
-	// 			end_school_year : endSchoolYear
-	// 		} )
+		await db.transaction( async trx => {
 
-	// const
-	// 	abiturientID = await db('abiturients')
-	// 		.insert({
-	// 			passport_id : passportID,
-	// 			certificate_id : certificateID,
-	// 			first_name : firstName,
-	// 			last_name : lastName,
-	// 			middle_name : middleName,
-	// 			birth_date : birthDate,
-	// 			phone : phoneNumber,
-	// 			email,
-	// 			address,
-	// 			dormitory : dormitory === 'true' ? 1 : 0
-	// 		})
+			const
+				[ passportID ] = await trx( 'passports' )
+					.insert( {
+						series : passportSeries,
+						number : passportNumber,
+						issued_by : passportIssuedBy,
+						issued_date : passportIssuedDate,
+						registration_address : passportAddress,
+						code : passportCode
+					} )
 
-	const
-		selectedSocialStatuses = selectedSocialStatusesRaw.split( ',' ).filter( ( s : number ) => s > 0 ) as number[]
+			const
+				[ certificateID ] = await trx( 'certificates' )
+					.insert( {
+						number : certificateNumber,
+						school_name : schoolName,
+						end_school_year : endSchoolYear
+					} )
 
-	if ( selectedSocialStatuses.length ) {
+			const
+				[ abiturientID ] = await trx( 'abiturients' )
+					.insert( {
+						passport_id : passportID,
+						certificate_id : certificateID,
+						first_name : firstName,
+						last_name : lastName,
+						middle_name : middleName,
+						birth_date : birthDate,
+						phone : phoneNumber,
+						email,
+						address,
+						dormitory : dormitory === 'true' ? 1 : 0
+					} )
 
-		// await db('xref_abiturients_social_statuses')
-		// 	.insert( selectedSocialStatuses.map( s => ({
-		// 		abiturient_id : abiturientID,
-		// 		social_status_id : s
-		// 	})) )
-		// 	.onConflict()
-		// 	.ignore()
+			const
+				selectedSocialStatuses = selectedSocialStatusesRaw.split( ',' ).filter( ( s : number ) => s > 0 ) as number[]
+
+			if ( selectedSocialStatuses.length ) {
+
+				await trx( 'xref_abiturients_social_statuses' )
+					.insert( selectedSocialStatuses.map( s => ( {
+						abiturient_id : abiturientID,
+						social_status_id : s
+					} ) ) )
+
+			}
+
+			await trx( 'xref_abiturients_disciplines_marks' )
+				.insert( marks.map( e => ( {
+					abiturient_id : abiturientID,
+					discipline_id : e.disciplineID,
+					mark : e.value
+				} ) ) )
+
+			await trx( 'statements' )
+				.insert( selectedSpecializations.map( group => ( {
+					abiturient_id : abiturientID,
+					group_id : group,
+					average_score : db( 'xref_groups_disciplines as gd' )
+						.first( db.raw( 'sum(mark) / count(1) as average_score' ) )
+						.leftJoin( 'xref_abiturients_disciplines_marks as dm', 'dm.discipline_id', 'gd.discipline_id' )
+						.where( 'group_id', group )
+				} ) ) )
+
+		} )
+
+		// save files to db
+		// and file system
+
+	} catch ( error ) {
+
+		console.error( error )
+		// @ts-ignore
+		console.log( error.message )
+		// return next( new ApiError( 500, 'Внутренняя ошибка сервера' ) )
 
 	}
 
-	// await db( 'xref_abiturients_disciplines_marks' )
-	// 	.insert( marks.map( e => ( {
-	// 		abiturient_id : abiturientID,
-	// 		discipline_id : e.disciplineID,
-	// 		mark : e.value
-	// 	} ) ) )
-	// 	.onConflict()
-	// 	.merge()
-
-	const applications = await db( 'statements' )
-		.insert( selectedSpecializations.map( s => ( {
-			abiturient_id : 2,
-			group_id : s,
-			// average_score : 1.0
-		} ) ) )
-		.onConflict()
-		.ignore()
-
-	console.log( applications )
-
-	// check average score!!!
-	// check files size
-	// check files type
-	// check passport number and series of approved abiturients
-	// save files
-	// add to db
-	// create applications
+	// no create applications and other docx (create ONLY on request)!!!!
+	// create applications (select statements for create applications)
 	// create other documents
+
 	// send mail
 
-	// console.log( req.body )
-	// console.log( req.files )
-
-	res.status( 200 ).send( { id : 1 } )
+	res.sendStatus( 200 )
 
 } )
 
