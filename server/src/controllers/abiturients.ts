@@ -39,6 +39,23 @@ abiturientsRouter.get( '/', async ( req, res, next ) => {
 			abiturients.orderBy( 'a.status_id', sortVector )
 			break
 
+		case 'fullName':
+			abiturients.orderBy( [
+				{
+					column : 'a.first_name',
+					order : sortVector
+				},
+				{
+					column : 'a.last_name',
+					order : sortVector
+				},
+				{
+					column : 'a.middle_name',
+					order : sortVector
+				}
+			] )
+			break
+
 		case 'createdAt':
 			abiturients.orderBy( 's.created_at', sortVector )
 			break
