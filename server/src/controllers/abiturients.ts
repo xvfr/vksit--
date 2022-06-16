@@ -29,8 +29,6 @@ abiturientsRouter.get( '/count', async ( req, res, next ) => {
 
 abiturientsRouter.get( '/', async ( req, res, next ) => {
 
-	// TODO :: add pagination
-
 	const
 		{ offset, limit, orderBy, descending } = req.query,
 		sortVector = descending === 'true' ? 'desc' : 'asc'

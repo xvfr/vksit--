@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import faker from '@faker-js/faker/locale/ru'
 import { useGroups } from '@/stores/groups'
+import api from '@/api'
 
 const
 	$q = useQuasar(),
@@ -13,11 +13,11 @@ const
 		rating : true
 	} ),
 
-	columns : any = [
+	columns : any[] = [
 		{
-			name : 'position',
+			name : 'abiturientID',
 			label : '#',
-			field : 'position',
+			field : 'abiturientID',
 			align : 'left',
 
 			sortable : true
@@ -52,36 +52,121 @@ const
 			field : 'averageScore',
 			align : 'center',
 
-			sortable : true
+			sortable : true,
+
+			format : ( value : number ) => value.toFixed( 2 )
 		},
 		{
 			name : 'isOriginal',
 			label : 'Оригинал аттестата',
 			field : 'isOriginal',
-			align : 'right',
+			align : 'center',
 
 			sortable : true,
 
 			format : ( value : boolean ) => value ? 'Оригинал' : 'Копия'
 		}
 	],
-	rows : any = [],
 
-	// TODO :: change any type
-	selectedSpecialization = ref<any | null>( localStorage.ratingSpecialization ? JSON.parse( localStorage.ratingSpecialization ) : null )
+	rating = ref<{ abiturientID : number, firstName : string, lastName : string, middleName : string, averageScore : number, isOriginal : boolean }[]>( [] ),
 
-for ( let i = 1; i < 30; i++ )
-	rows.push( {
-		position : i,
-		firstName : faker.name.firstName(),
-		lastName : faker.name.lastName(),
-		middleName : faker.name.middleName(),
-		averageScore : ( Math.random() * ( 5 - 1 ) + 1 ).toFixed( 2 ),
-		createdAt : new Date( faker.date.past() ).toLocaleDateString(),
-		isOriginal : Math.random() > 0.5
-	} )
+	pagination = ref<{ sortBy : string, descending : boolean, page : number, rowsPerPage : number, rowsNumber : number }>( {
+		sortBy : localStorage.ratingSortBy || 'isOriginal',
+		descending : localStorage.descending === 'true' || false,
+		page : 1,
+		rowsPerPage : 50,
+		rowsNumber : 1
+	} ),
 
-watch( selectedSpecialization, spec => spec ? localStorage.ratingSpecialization = JSON.stringify( spec ) : delete localStorage.ratingSpecialization )
+	selectedSpecialization = ref<{ groupID : number, name : string, shortName : string, isPaid : boolean } | null>( localStorage.ratingSpecialization ? JSON.parse( localStorage.ratingSpecialization ) : null )
+
+watch( () => pagination.value.sortBy, ( sortBy ) => sortBy ? localStorage.ratingSortBy = sortBy : delete localStorage.ratingSortBy )
+watch( () => pagination.value.descending, ( descending ) => descending ? localStorage.descending = descending : delete localStorage.descending )
+
+watch( selectedSpecialization, spec => {
+
+	if ( spec ) {
+
+		onRequest( {
+			pagination : pagination.value,
+			filter : undefined
+		} )
+
+		localStorage.ratingSpecialization = JSON.stringify( spec )
+
+	} else
+		delete localStorage.ratingSpecialization
+} )
+
+const onRequest = async ( props : any ) => {
+
+	loading.rating = true
+
+	const
+		{ page, rowsPerPage, sortBy, descending } = props.pagination,
+		startRow = ( page - 1 ) * rowsPerPage
+
+	try {
+
+		const
+			{ data : { items } } = await api.get( `rating/${ selectedSpecialization.value?.groupID }`, {
+				params : {
+					limit : rowsPerPage,
+					offset : startRow,
+					orderBy : sortBy,
+					descending
+				}
+			} )
+
+		rating.value = items.map( ( e : any ) => ( {
+			abiturientID : e.abiturient_id,
+			firstName : e.first_name,
+			lastName : e.last_name,
+			middleName : e.middle_name,
+			averageScore : e.average_score,
+			isOriginal : !!e.original_certificate
+		} ) )
+
+		pagination.value.page = page
+		pagination.value.rowsPerPage = rowsPerPage
+		pagination.value.sortBy = sortBy
+		pagination.value.descending = descending
+
+	} catch ( e ) {
+
+		console.error( e )
+
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить список рейтинг',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom-left'
+		} )
+
+	}
+
+	loading.rating = false
+
+}
+
+onMounted( async () => {
+
+	if ( selectedSpecialization.value ) {
+
+		onRequest( {
+			pagination : pagination.value,
+			filter : undefined
+		} )
+
+		const
+			{ data : { count } } = await api( `rating/${ selectedSpecialization.value.groupID }/count` )
+
+		pagination.value.rowsNumber = count
+
+	}
+
+} )
 
 </script>
 
@@ -108,27 +193,30 @@ watch( selectedSpecialization, spec => spec ? localStorage.ratingSpecialization 
 		  :error="groupsStore.isError"
 		  error-message="Не удалось загрузить список специальностей"
 
+		  behavior="dialog"
+
+		  clearable
+		  clear-icon="clear"
+
 		  option-label="name"
 		  option-value="groupID"
 	  />
 
-	  <!--	TODO :: save selected group to localstorage and route  -->
-
-	</q-card-section>
-	<q-card-section v-if="selectedSpecialization">
-
 	  <q-table
+		  v-if="selectedSpecialization"
+
 		  :grid="$q.screen.lt.md"
 		  flat
 		  :columns="columns"
-		  :rows="rows"
+		  :rows="rating"
 		  separator="vertical"
 		  :loading="loading.rating"
 
 		  table-header-class="bg-indigo-1"
 		  :table-class=" selectedSpecialization?.isPaid ? 'highlights-5' : 'highlights-25' "
 
-		  :pagination="{ rowsPerPage : 50, sortBy : 'isOriginal', descending : true }"
+		  @request="onRequest"
+		  v-model:pagination="pagination"
 	  />
 
 	</q-card-section>
