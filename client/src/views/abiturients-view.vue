@@ -102,7 +102,7 @@ const onRequest = async ( props : any ) => {
 		const
 			formattedAbiturients = items.map( ( e : any ) => ( {
 				abiturientID : e.abiturient_id,
-				fullName : `${ e.last_name } ${ e.first_name } ${ e.middle_name }`,
+				fullName : e.middle_name ? `${ e.last_name } ${ e.first_name } ${ e.middle_name }` : `${ e.last_name } ${ e.first_name }`,
 				createdAt : new Date().toLocaleDateString(),
 				phoneNumber : '+7 ' + e.phone,
 				email : e.email,

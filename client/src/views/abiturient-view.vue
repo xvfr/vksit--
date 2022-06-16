@@ -126,6 +126,8 @@ const
 
 		status.value = response.abiturient.status
 		documents.value = response.files
+		
+		dormitory.value = response.abiturient.dormitory
 
 		// TODO :: add response to cache for use latter (check changed field)
 
