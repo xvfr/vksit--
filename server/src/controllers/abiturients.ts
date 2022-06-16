@@ -124,7 +124,7 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 			.where( 'abiturient_id', abiturientID )
 
 	const
-		extraFiles = await db( 'abiturients_files' )
+		extraFiles = await db( 'extra_files' )
 			.select( 'file_id' )
 			.where( 'abiturient_id', abiturientID )
 
@@ -638,10 +638,120 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 						.where( 'group_id', group )
 				} ) ) )
 
-		} )
+			if ( photo ) {
 
-		// save files to db
-		// and file system
+				const
+					[ fileID ] = await trx( 'abiturients_photos' )
+						.insert( {
+							abiturient_id : abiturientID
+						} )
+
+				'mv' in photo && await photo.mv( path.join( __dirname, '..', '..', 'uploads', 'photos', `${ fileID }-${ abiturientID }.jpg` ) )
+
+			}
+
+			if ( !Array.isArray( passportScan ) ) {
+
+				const
+					[ fileID ] = await trx( 'passports_files' )
+						.insert( {
+							passport_id : passportID
+						} )
+
+				'mv' in photo && await passportScan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileID }-${ abiturientID }.jpg` ) )
+
+			} else {
+
+				const
+					filesCount = passportScan.length
+
+				await trx( 'passports_files' )
+					.insert( Array( filesCount ).fill( { passport_id : passportID }, 0, filesCount ) )
+
+				const
+					fileIDs = await trx( 'passports_files' )
+						.select( 'file_id' )
+						.where( 'passport_id', passportID )
+
+				let i = 0
+
+				for ( const scan of passportScan ) {
+					await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileIDs[ i ].file_id }-${ passportID }.jpg` ) )
+					i++
+				}
+
+			}
+
+			if ( !Array.isArray( certificateScan ) ) {
+
+				const
+					[ fileID ] = await trx( 'certificates_files' )
+						.insert( {
+							certificate_id : certificateID
+						} )
+
+				'mv' in photo && await certificateScan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileID }-${ abiturientID }.jpg` ) )
+
+			} else {
+
+				const
+					filesCount = certificateScan.length
+
+				await trx( 'certificates_files' )
+					.insert( Array( filesCount ).fill( { certificate_id : certificateID }, 0, filesCount ) )
+
+				const
+					fileIDs = await trx( 'certificates_files' )
+						.select( 'file_id' )
+						.where( 'certificate_id', certificateID )
+
+				let i = 0
+
+				for ( const scan of certificateScan ) {
+					await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileIDs[ i ].file_id }-${ passportID }.jpg` ) )
+					i++
+				}
+
+			}
+
+			if ( Array.isArray( extraFiles ) || extraFiles ) {
+
+				if ( !Array.isArray( extraFiles ) ) {
+
+					const
+						[ fileID ] = await trx( 'extra_files' )
+							.insert( {
+								abiturient_id : abiturientID
+							} )
+
+					'mv' in photo && await extraFiles.mv( path.join( __dirname, '..', '..', 'uploads', 'extra', `${ fileID }-${ abiturientID }.jpg` ) )
+
+				} else {
+
+					const
+						filesCount = extraFiles.length
+
+					await trx( 'extra_files' )
+						.insert( Array( filesCount ).fill( { abiturient_id : abiturientID }, 0, filesCount ) )
+
+					const
+						fileIDs = await trx( 'extra_files' )
+							.select( 'file_id' )
+							.where( 'abiturient_id', abiturientID )
+
+					let i = 0
+
+					for ( const scan of extraFiles ) {
+						await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'extra', `${ fileIDs[ i ].file_id }-${ passportID }.jpg` ) )
+						i++
+					}
+
+				}
+
+			}
+
+
+		} )
 
 	} catch ( error ) {
 
