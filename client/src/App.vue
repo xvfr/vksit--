@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import NavigationRoutes from '@/components/navigation-routes.vue'
 import { useAuth } from '@/stores/auth'
 import { useGroups } from '@/stores/groups'
+import api from '@/api'
 
 const
 	authStore = useAuth(),
@@ -10,6 +11,9 @@ const
 	drawer = ref( false )
 
 groupsStore.get()
+
+if ( authStore.isAuthorized )
+	api.defaults.headers.common['Authorization'] = authStore.user.token
 
 </script>
 

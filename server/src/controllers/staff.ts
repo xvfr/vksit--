@@ -1,6 +1,7 @@
 import express from 'express'
 import db from '../db'
 import ApiError from '../errors/api'
+import jwt from 'jsonwebtoken'
 
 const staffRouter = express.Router()
 
@@ -16,20 +17,26 @@ staffRouter.post( '/auth', async ( req, res, next ) => {
 
 	const
 		user = await db( 'staff' )
-			.first( 'staff_id' )
+			.first( 'user_id' )
 			.where( {
 				login,
 				password
 			} )
 
-	// TODO :: generate token
-
 	if ( !user )
-		return res.sendStatus( 401 )
+		return res.sendStatus( 403 )
 
-	res.send( {
-		token : '123123'
+	if ( !process.env.JWT_SECRET )
+		return res.sendStatus( 500 )
+
+	const token = jwt.sign( {
+		login : user.login,
+		user_id : user.user_id
+	}, process.env.JWT_SECRET, {
+		expiresIn : '7d'
 	} )
+
+	res.send( { token } )
 
 } )
 

@@ -5,6 +5,8 @@ declare let process : {
 		DATABASE_PASSWORD : string,
 		DATABASE_NAME : string,
 
-		PORT : number
+		PORT : number,
+
+		JWT_SECRET : string
 	}
 }

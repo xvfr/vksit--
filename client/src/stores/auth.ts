@@ -2,14 +2,12 @@ import { defineStore } from 'pinia'
 import { Notify } from 'quasar'
 import router from '@/router'
 import api from '@/api'
-import { Axios, AxiosError } from 'axios'
+import { AxiosError } from 'axios'
 
 export const useAuth = defineStore( 'auth', {
 
 	state : () => ( {
-
-		user : localStorage.user ? JSON.parse( localStorage.user ) : null
-
+		user : localStorage.user ? JSON.parse( localStorage.user ) : null as { login : string, token : string } | null
 	} ),
 
 	getters : {
@@ -52,12 +50,13 @@ export const useAuth = defineStore( 'auth', {
 					position : 'bottom-left'
 				} )
 
+				api.defaults.headers.common['Authorization'] = token
 				localStorage.user = JSON.stringify( this.user )
 				router.push( { name : redirect } )
 
 			} catch ( e ) {
 
-				if ( e instanceof AxiosError && e.response?.status === 401 )
+				if ( e instanceof AxiosError && e.response?.status === 403 )
 					Notify.create( {
 						type : 'warning',
 						message : 'Неверный логин или пароль!',
@@ -75,13 +74,11 @@ export const useAuth = defineStore( 'auth', {
 
 			this.user = null
 			delete localStorage.user
+			delete api.defaults.headers.common['Authorization']
 
 			Notify.create( {
-				type : 'info',
 				message : 'Вы успешно вышли!',
-
 				progress : true,
-
 				position : 'bottom-left'
 			} )
 

@@ -4,6 +4,7 @@ import path from 'path'
 import ApiError from '../errors/api'
 import disciplines from './disciplines'
 import * as fs from 'fs'
+import { isAuthorized } from '../middlewares/auth'
 
 const
 	abiturientsRouter = express.Router()
@@ -26,9 +27,7 @@ abiturientsRouter.get( '/count', async ( req, res, next ) => {
 
 // get list of abiturients (in admin)
 
-// TODO :: add auth middleware
-
-abiturientsRouter.get( '/', async ( req, res, next ) => {
+abiturientsRouter.get( '/', isAuthorized, async ( req, res, next ) => {
 
 	const
 		{ offset, limit, orderBy, descending } = req.query,
@@ -784,10 +783,10 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 /*
 
-	TODO : guid
-	add guid for images (new field on db)??
-	check guid on request (add to href)
-	send or not file
+ TODO : guid
+ add guid for images (new field on db)??
+ check guid on request (add to href)
+ send or not file
 
  */
 
