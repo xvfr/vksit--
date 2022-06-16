@@ -7,6 +7,22 @@ import disciplines from './disciplines'
 const
 	abiturientsRouter = express.Router()
 
+
+// get abiturients count
+
+// TODO :: add auth middleware
+
+abiturientsRouter.get( '/count', async ( req, res, next ) => {
+
+	const
+		{ count } = await db( 'abiturients' )
+			.first()
+			.count( { count : '*' } )
+
+	return res.send( { count } )
+
+} )
+
 // get list of abiturients (in admin)
 
 // TODO :: add auth middleware

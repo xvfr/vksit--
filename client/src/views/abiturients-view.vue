@@ -140,11 +140,18 @@ const onRequest = async ( props : any ) => {
 
 }
 
-onMounted( () => {
+onMounted( async () => {
+
+	const
+		{ data : { count } } = await api('abiturients/count')
+
+	pagination.value.rowsNumber = count
+
 	onRequest( {
 		pagination : pagination.value,
 		filter : undefined
 	} )
+
 } )
 
 </script>
