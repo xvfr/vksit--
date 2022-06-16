@@ -760,6 +760,8 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 		console.log( error.message )
 		// return next( new ApiError( 500, 'Внутренняя ошибка сервера' ) )
 
+		// TODO :: add normal catch
+
 	}
 
 	// send mail
