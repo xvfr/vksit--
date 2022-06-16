@@ -652,10 +652,6 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 	}
 
-	// no create applications and other docx (create ONLY on request)!!!!
-	// create applications (select statements for create applications)
-	// create other documents
-
 	// send mail
 
 	res.sendStatus( 200 )

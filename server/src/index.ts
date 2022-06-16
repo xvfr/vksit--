@@ -25,7 +25,18 @@ const
 
 app.use( express.json() )
 app.use( cors() )
-app.use( fileUpload() )
+app.use( fileUpload({
+
+	limits : {
+		fileSize : 5 * 1024 * 1024,
+		files : 20
+	},
+
+	createParentPath : true,
+	safeFileNames : true,
+	abortOnLimit : true
+
+}) )
 
 // routers
 app.use( '/api/abiturients', abiturientsRouter )

@@ -22,6 +22,7 @@ api.interceptors.response.use( response => { return response }, error => {
 	}
 
 	// catch 401 / 403 error
+	// catch 413 error!
 
 	return Promise.reject( error )
 
