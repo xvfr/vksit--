@@ -42,7 +42,7 @@ const
 	certificateNumber = ref<null | number>( null ),
 	schoolName = ref<null | string>( null ),
 	endSchoolYear = ref<null | number>( null ),
-	marks = reactive<object[]>( [] ),
+	marks = reactive<{ discipline_id : number, value : number, name : string }[]>( [] ),
 	certificateScan = reactive<object[]>( [] ),
 	certificateScanRef = ref(),
 
@@ -54,10 +54,11 @@ const
 
 	documentsTab = ref( 'photo' ),
 
-	// TODO :: change any type
-	statements = ref<any[]>( [] ),
-	originalCertificateStatement = ref( null ),
+	statements = ref<{ statement_id : number, group_id : number, created_at : string, original_certificate : boolean, average_score : number }[]>( [] ),
+	originalCertificateStatement = ref<number | null>( null ),
 	originalCertificateExists = ref( false ),
+
+	documents = ref(),
 
 	// TODO :: change any type
 	status = ref<any | null>( null ),
@@ -67,10 +68,8 @@ const
 		mark : ( v : number ) => v <= 5 && v >= 1 || 'введите корректное значение'
 	},
 
-	files = ref(),
-
 	errors = reactive( {
-		exists : false // is abit exists
+		exists : false // is abiturient exists
 	} ),
 
 	possibleEndSchoolYears = Array( 15 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i )
@@ -85,7 +84,7 @@ watch( originalCertificateExists, exists => exists || ( originalCertificateState
 
 const
 	saveAbiturient = async () => {
-		$router.replace( { name : 'abiturients' } )
+		await $router.replace( { name : 'abiturients' } )
 	}
 
 // load abiturient
@@ -121,12 +120,12 @@ const
 
 		selectedSocialStatuses.value = response.social_statuses.map( ( s : any ) => socialStatusesStore.socialStatuses.find( sc => sc.statusID === s ) )
 
-		originalCertificateStatement.value = statements.value?.find( s => s.original_certificate )?.statement_id
+		originalCertificateStatement.value = statements.value?.find( s => s.original_certificate )?.statement_id || null
 		if ( originalCertificateStatement.value )
 			originalCertificateExists.value = true
 
 		status.value = response.abiturient.status
-		files.value = response.files
+		documents.value = response.files
 
 		// TODO :: add response to cache for use latter (check changed field)
 
@@ -312,7 +311,7 @@ const
 				  @removed=" ( files ) => photo.splice( photo.findIndex( p => p === files[0] ), 1 ) "
 			  />
 
-			  <!--		TODO :: add handling upload btn on quploader	  -->
+			  <!--		TODO :: add handling upload btn on q-uploader	  -->
 
 			</div>
 
@@ -497,7 +496,7 @@ const
 			  <q-input
 				  v-for="mark in marks"
 				  class="col"
-				  v-model.number="mark.mark"
+				  v-model.number="mark.value"
 				  :label="mark.name"
 				  mask="#"
 				  fill-mask="_"
@@ -524,8 +523,8 @@ const
 
 				  ref="certificateScanRef"
 
-				  @added=" ( files ) => certificateScan.push( files ) "
-				  @removed=" ( files ) => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 ) "
+				  @added="files => certificateScan.push( files )"
+				  @removed="files => certificateScan.splice( certificateScan.findIndex( p => p === files[0] ), 1 )"
 			  />
 			</div>
 
@@ -608,8 +607,8 @@ const
 
 				  ref="extraFilesRef"
 
-				  @added=" ( files ) => extraFiles.push( files ) "
-				  @removed=" ( files ) => extraFiles.splice( extraFiles.findIndex( p => p === files[0] ), 1 ) "
+				  @added="files => extraFiles.push( files )"
+				  @removed="files => extraFiles.splice( extraFiles.findIndex( p => p === files[0] ), 1 )"
 			  />
 			</div>
 
@@ -777,11 +776,11 @@ const
 
 				<q-tab-panel name="photo">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="files?.photo">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents?.photo">
 					<q-card>
 					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
 						<div class="absolute-top text-overline text-center">
-						  Фото (#{{ files?.photo }})
+						  Фото (#{{ documents?.photo }})
 						</div>
 					  </q-img>
 					  <q-card-actions>
@@ -800,8 +799,8 @@ const
 
 				<q-tab-panel name="passport">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="files.passport.length">
-					<q-card v-for="file in files.passport">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.passport.length">
+					<q-card v-for="file in documents.passport">
 					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
 						<div class="absolute-top text-overline text-center">
 						  Паспорт (#{{ file }})
@@ -823,8 +822,8 @@ const
 
 				<q-tab-panel name="certificate">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="files.certificate.length">
-					<q-card v-for="file in files.certificate">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.certificate.length">
+					<q-card v-for="file in documents.certificate">
 					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
 						<div class="absolute-top text-overline text-center">
 						  Аттестат (#{{ file }})
@@ -846,8 +845,8 @@ const
 
 				<q-tab-panel name="extra">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="files.extra.length">
-					<q-card v-for="file in files.extra">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.extra.length">
+					<q-card v-for="file in documents.extra">
 					  <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
 						<div class="absolute-top text-overline text-center">
 						  Дополнительный файл (#{{ file }})

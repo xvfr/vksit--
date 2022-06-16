@@ -66,7 +66,7 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 
 	const
 		marks = await db( 'xref_abiturients_disciplines_marks as dm' )
-			.select( 'dm.discipline_id', 'dm.mark', 'd.name' )
+			.select( 'dm.discipline_id', 'dm.value', 'd.name' )
 			.leftJoin( 'disciplines as d', 'd.discipline_id', 'dm.discipline_id' )
 			.where( 'abiturient_id', abiturientID )
 
@@ -567,7 +567,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 				.insert( marks.map( e => ( {
 					abiturient_id : abiturientID,
 					discipline_id : e.disciplineID,
-					mark : e.value
+					value : e.value
 				} ) ) )
 
 			await trx( 'statements' )
@@ -575,7 +575,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 					abiturient_id : abiturientID,
 					group_id : group,
 					average_score : db( 'xref_groups_disciplines as gd' )
-						.first( db.raw( 'sum(mark) / count(1) as average_score' ) )
+						.first( db.raw( 'sum(value) / count(1) as average_score' ) )
 						.leftJoin( 'xref_abiturients_disciplines_marks as dm', 'dm.discipline_id', 'gd.discipline_id' )
 						.where( 'group_id', group )
 				} ) ) )
