@@ -775,16 +775,31 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 	}
 
-	// send mail
+	// TODO :: send mail
 
 	res.sendStatus( 200 )
 
 } )
 
+
+/*
+
+	TODO : guid
+	add guid for images (new field on db)??
+	check guid on request (add to href)
+	send or not file
+
+ */
+
+
 // change specific abiturient data
 
 // TODO :: add auth middleware
 
-// abiturientsRouter.put('/:abiturientID')
+abiturientsRouter.put( '/:abiturientID', async ( req, res, next ) => {
+
+	res.sendStatus( 403 )
+
+} )
 
 export default abiturientsRouter
