@@ -2,9 +2,14 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
+import { useApplicationStatuses } from '@/stores/application-statuses'
+import { useAuth } from '@/stores/auth'
 
 const
 	$q = useQuasar(),
+
+	authStore = useAuth(),
+	applicationStatusesStore = useApplicationStatuses(),
 
 	loading = reactive( {
 		applications : true
@@ -110,11 +115,7 @@ const onRequest = async ( props : any ) => {
 
 			comment : e.comment,
 
-			status : {
-				id : e.status_id,
-				title : e.title,
-				color : e.color
-			}
+			status : e.status_id
 		} ) )
 
 		pagination.value.page = page
@@ -142,15 +143,17 @@ const onRequest = async ( props : any ) => {
 
 onMounted( async () => {
 
-	onRequest( {
+	await onRequest( {
 		pagination : pagination.value,
 		filter : undefined
 	} )
 
 	const
-		{ data : { count } } = await api('abiturients/count')
+		{ data : { count } } = await api( 'abiturients/count' )
 
 	pagination.value.rowsNumber = count
+
+	await applicationStatusesStore.get()
 
 } )
 
@@ -186,8 +189,6 @@ onMounted( async () => {
 		  @request="onRequest"
 	  >
 
-		<!--	TODO :: check remove v-model (:pagination)	-->
-
 		<template v-slot:body-cell-abiturientID="props">
 		  <q-td key="statementID" :props="props">
 			<b @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )"
@@ -197,8 +198,11 @@ onMounted( async () => {
 
 		<template v-slot:body-cell-status="props">
 		  <q-td key="status" :props="props">
-			<q-badge outline align="middle" :color="props.row.status.color">
-			  {{ props.row.status.title }}
+			<q-circular-progress color="indigo" indeterminate
+								 v-if="applicationStatusesStore.isLoading"></q-circular-progress>
+			<q-badge v-else-if="!applicationStatusesStore.isError" outline align="middle"
+					 :color="applicationStatusesStore.statuses.find( s => s.statusID === props.row.status )?.color">
+			  {{ applicationStatusesStore.statuses.find( s => s.statusID === props.row.status )?.title }}
 			</q-badge>
 		  </q-td>
 		</template>
@@ -248,8 +252,11 @@ onMounted( async () => {
 				 class="cursor-pointer">{{ props.row.abiturientID }}</b>
 
 			  <div class="text-grey text-caption q-mt-sm">Статус</div>
-			  <q-badge outline align="middle" :color="props.row.status.color || 'grey'">
-				{{ props.row.status.title || 'Не установлен' }}
+			  <q-circular-progress color="indigo" indeterminate
+								   v-if="applicationStatusesStore.isLoading"></q-circular-progress>
+			  <q-badge v-else-if="!applicationStatusesStore.isError" outline align="middle"
+					   :color="applicationStatusesStore.statuses.find( s => s.statusID === props.row.status )?.color">
+				{{ applicationStatusesStore.statuses.find( s => s.statusID === props.row.status )?.title }}
 			  </q-badge>
 
 			  <div class="text-grey text-caption q-mt-sm">ФИО</div>

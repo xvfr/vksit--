@@ -5,6 +5,7 @@ import api from '@/api'
 import { useGroups } from '@/stores/groups'
 import { useSocialStatuses } from '@/stores/social-statuses'
 import { useQuasar } from 'quasar'
+import { useApplicationStatuses } from '@/stores/application-statuses'
 
 const
 	$q = useQuasar(),
@@ -15,6 +16,7 @@ const
 
 	groupsStore = useGroups(),
 	socialStatusesStore = useSocialStatuses(),
+	applicationStatusesStore = useApplicationStatuses(),
 
 	abiturientID = $route.params.id,
 	abiturientDialog = ref( true ),
@@ -62,8 +64,7 @@ const
 
 	documents = ref(),
 
-	// TODO :: change any type
-	status = ref<any | null>( null ),
+	currentStatus = ref<number | null>( null ),
 
 	rules = {
 		required : ( v : string ) => !!v || '* обязательное поле',
@@ -76,18 +77,11 @@ const
 
 	possibleEndSchoolYears = Array( 15 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i )
 
-socialStatusesStore.get()
+// watchers
 
 watch( passportAddressEqual, ( value ) => value && ( passportAddress.value = address.value ) )
 watch( currentStep, step => $router.push( { query : { step } } ) )
 watch( originalCertificateExists, exists => exists || ( originalCertificateStatement.value = null ) )
-
-// save abiturient
-
-const
-	saveAbiturient = async () => {
-		await $router.replace( { name : 'abiturients' } )
-	}
 
 // load abiturient
 
@@ -126,7 +120,7 @@ const
 		if ( originalCertificateStatement.value )
 			originalCertificateExists.value = true
 
-		status.value = response.abiturient.status
+		currentStatus.value = response.abiturient.status
 		documents.value = response.files
 
 		dormitory.value = response.abiturient.dormitory
@@ -138,6 +132,26 @@ const
 	}
 
 } )()
+
+onMounted( () => {
+
+	socialStatusesStore.get()
+	applicationStatusesStore.get()
+
+} )
+
+// change status
+
+const changeStatus = async ( statusID : number ) => {
+	console.log( statusID )
+}
+
+// save abiturient
+
+const
+	saveAbiturient = async () => {
+		await $router.replace( { name : 'abiturients' } )
+	}
 
 </script>
 
@@ -160,25 +174,31 @@ const
 	  <q-card-section class="flex">
 		<div class="text-overline">Редактирование абитуриента</div>
 		<q-space />
-		<q-badge v-if="status" outline align="middle" :color="status.color">
-		  {{ status.title }}
+
+		<q-circular-progress color="indigo" indeterminate
+							 v-if="applicationStatusesStore.isLoading"></q-circular-progress>
+		<q-badge v-else-if="!applicationStatusesStore.isError && currentStatus" outline align="middle"
+				 :color="applicationStatusesStore.statuses.find( s => s.statusID === currentStatus )?.color">
+		  {{ applicationStatusesStore.statuses.find( s => s.statusID === currentStatus )?.title }}
 
 		  <q-btn-group flat class="q-ml-xs">
 			<q-btn icon="more_vert" flat round size="xs" />
 
 			<q-menu cover transition-show="scale" transition-hide="scale" square max-width="15rem">
-			  <q-btn flat color="positive" class="full-width text-caption" size="sm">
-				Одобрено
-			  </q-btn>
-			  <q-btn flat color="primary" class="full-width text-caption" size="sm">
-				Необходимо редактирование
-			  </q-btn>
-			  <q-btn flat color="negative" class="full-width text-caption" size="sm">
-				Отклонено
+			  <q-btn
+				  flat
+				  :color="status.color"
+				  class="full-width text-caption"
+				  size="sm"
+				  v-for="status in applicationStatusesStore.statuses" v-show="status.statusID !== currentStatus"
+				  @click="changeStatus(status)"
+			  >
+				{{ status.title }}
 			  </q-btn>
 			</q-menu>
 		  </q-btn-group>
 		</q-badge>
+
 	  </q-card-section>
 
 	  <q-card-section class="q-pt-none">
@@ -881,6 +901,27 @@ const
 	</q-card>
 
   </q-dialog>
+
+  <!-- change status dialog -->
+
+  <!--  <q-dialog square v-model="changeStatusDialog">-->
+  <!--	<q-card>-->
+
+  <!--	  <q-card-section>-->
+  <!--		<div class="text-overline">Изменение статуса</div>-->
+  <!--		<div class="text-caption text-grey">При сохранении абитуриенту будет направлено письмо</div>-->
+  <!--	  </q-card-section>-->
+
+  <!--	  <q-card-section>-->
+  <!--		<q-input type="textarea" model-value="" label="Сообщение для абитуриента" />-->
+  <!--	  </q-card-section>-->
+
+  <!--	  <q-card-actions>-->
+  <!--		<q-btn class="full-width" color="positive" outline>Сохранить</q-btn>-->
+  <!--	  </q-card-actions>-->
+
+  <!--	</q-card>-->
+  <!--  </q-dialog>-->
 
 </template>
 

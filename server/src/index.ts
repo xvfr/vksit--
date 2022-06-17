@@ -17,6 +17,7 @@ import socialStatusesRouter from './controllers/social-statuses'
 import disciplinesRouter from './controllers/disciplines'
 import staffRouter from './controllers/staff'
 import ratingRouter from './controllers/rating'
+import applicationsStatusesRouter from './controllers/application-statuses'
 
 // app
 
@@ -45,6 +46,7 @@ app.use( '/api/social-statuses', socialStatusesRouter )
 app.use( '/api/disciplines', disciplinesRouter )
 app.use( '/api/staff', staffRouter )
 app.use( '/api/rating', ratingRouter )
+app.use( '/api/application-statuses', applicationsStatusesRouter )
 
 // errors check
 //noinspection JSUnusedLocalSymbols

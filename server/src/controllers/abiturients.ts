@@ -12,9 +12,7 @@ const
 
 // get abiturients count
 
-// TODO :: add auth middleware
-
-abiturientsRouter.get( '/count', async ( req, res, next ) => {
+abiturientsRouter.get( '/count', isAuthorized, async ( req, res, next ) => {
 
 	const
 		{ count } = await db( 'abiturients' )
@@ -35,9 +33,8 @@ abiturientsRouter.get( '/', isAuthorized, async ( req, res, next ) => {
 
 	const
 		abiturients = db( 'abiturients as a' )
-			.select( 'a.abiturient_id', 'a.first_name', 'a.last_name', 'a.middle_name', 'a.phone', 'a.email', 's.created_at', 'a.status_id', 'st.title', 'st.color', 'a.comment' )
+			.select( 'a.abiturient_id', 'a.first_name', 'a.last_name', 'a.middle_name', 'a.phone', 'a.email', 's.created_at', 'a.status_id', 'a.comment' )
 			.leftJoin( 'statements as s', 's.abiturient_id', 'a.abiturient_id' )
-			.leftJoin( 'statuses as st', 'st.status_id', 'a.status_id' )
 			.groupBy( 'a.abiturient_id' )
 
 	isNaN( Number( offset ) ) || abiturients.offset( Number( offset ) )
@@ -82,19 +79,16 @@ abiturientsRouter.get( '/', isAuthorized, async ( req, res, next ) => {
 
 // get current abiturient
 
-// TODO :: add auth middleware
-
-abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
+abiturientsRouter.get( '/:abiturientID', isAuthorized, async ( req, res, next ) => {
 
 	const
 		{ abiturientID } = req.params
 
 	const
 		abiturient = await db( 'abiturients as a' )
-			.first( 'a.*', 'p.series as passport_series', 'p.number as passport_number', 'p.issued_by as passport_issued_by', 'p.issued_date as passport_issued_date', 'p.registration_address', 'p.code as passport_code', 'c.number as certificate_number', 'c.school_name', 'c.end_school_year', 's.title', 's.color' )
+			.first( 'a.*', 'p.series as passport_series', 'p.number as passport_number', 'p.issued_by as passport_issued_by', 'p.issued_date as passport_issued_date', 'p.registration_address', 'p.code as passport_code', 'c.number as certificate_number', 'c.school_name', 'c.end_school_year' )
 			.join( 'passports as p', 'p.passport_id', 'a.passport_id' )
 			.join( 'certificates as c', 'c.certificate_id', 'a.certificate_id' )
-			.leftJoin( 'statuses as s', 's.status_id', 'a.status_id' )
 			.where( 'abiturient_id', abiturientID )
 
 	if ( !abiturient )
@@ -178,11 +172,7 @@ abiturientsRouter.get( '/:abiturientID', async ( req, res, next ) => {
 				address : abiturient.address,
 				dormitory : !!abiturient.dormitory,
 
-				status : {
-					id : abiturient.status_id,
-					title : abiturient.title,
-					color : abiturient.color
-				},
+				status : abiturient.status_id,
 
 				comment : abiturient.comment
 			},
@@ -224,8 +214,6 @@ abiturientsRouter.get( '/:abiturientID/:fileType/:fileID', async ( req, res, nex
 } )
 
 // add new abiturient
-
-// TODO :: add auth middleware
 
 abiturientsRouter.post( '/', async ( req, res, next ) => {
 
@@ -793,9 +781,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 // change specific abiturient data
 
-// TODO :: add auth middleware
-
-abiturientsRouter.put( '/:abiturientID', async ( req, res, next ) => {
+abiturientsRouter.put( '/:abiturientID', isAuthorized, async ( req, res, next ) => {
 
 	res.sendStatus( 403 )
 
