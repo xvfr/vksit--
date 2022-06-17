@@ -118,14 +118,6 @@ socialStatusesStore.get()
 				title : e.name
 			} ) )
 
-	  /*
-
-	   TODO :: rework load from localstorage saved marks
-
-	   TODO :: set load disciplines in store
-
-	   */
-
 		for ( const dis of disciplines ) {
 
 			if ( !marks.find( e => e.disciplineID === dis.disciplineID ) )
