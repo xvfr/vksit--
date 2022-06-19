@@ -86,7 +86,8 @@ const
 		notice : ''
 	} ),
 
-	abiturients = inject<any>( 'abiturients' )
+	abiturients = inject<any>( 'abiturients' ),
+	abiturientCache = ref<any>()
 
 // watchers
 
@@ -135,6 +136,8 @@ const loadAbiturient = async () => {
 		documents.value = response.files
 
 		dormitory.value = response.abiturient.dormitory
+
+		abiturientCache.value = response
 
 		// TODO :: add response to cache for use latter (check changed field)
 
@@ -252,6 +255,12 @@ watch( originalCertificateStatement, statement => {
 	edit( 'originalCertificate', 'Оригинал аттестата', { value : statement } )
 } )
 
+// change form field
+
+const changeField = async () => {
+	console.log( 'change field start' )
+}
+
 </script>
 
 <template>
@@ -334,9 +343,9 @@ watch( originalCertificateStatement, statement => {
 				  no-error-icon
 				  :rules="[ rules.required ]"
 			  >
-				<template v-slot:append>
+				<template v-slot:append v-if="lastName !== abiturientCache?.abiturient.last_name">
 				  <q-btn size="sm" dense flat icon="save" color="positive"
-						 @click="edit('lastName', { value : lastName })" />
+						 @click="edit('lastName', 'Фамилия', { value : lastName })" />
 				</template>
 			  </q-input>
 
