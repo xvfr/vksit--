@@ -37,8 +37,6 @@ ratingRouter.get( '/:groupID', async ( req, res, next ) => {
 		{ offset, limit, orderBy, descending } = req.query,
 		sortVector = descending === 'true' ? 'desc' : 'asc'
 
-	console.log( req.query )
-
 	const
 		statusID = db( 'statuses' )
 			.first( 'status_id' )

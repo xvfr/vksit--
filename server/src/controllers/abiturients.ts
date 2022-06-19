@@ -192,6 +192,15 @@ abiturientsRouter.get( '/:abiturientID', isAuthorized, async ( req, res, next ) 
 
 // get files of abiturient id
 
+/*
+
+ TODO : guid
+ add guid for images (new field on db)??
+ check guid on request (add to href)
+ send or not file
+
+ */
+
 // TODO :: add auth middleware
 
 abiturientsRouter.get( '/:abiturientID/:fileType/:fileID', async ( req, res, next ) => {
@@ -768,22 +777,74 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 } )
 
-
-/*
-
- TODO : guid
- add guid for images (new field on db)??
- check guid on request (add to href)
- send or not file
-
- */
-
-
 // change specific abiturient data
 
 abiturientsRouter.put( '/:abiturientID', isAuthorized, async ( req, res, next ) => {
 
-	res.sendStatus( 403 )
+	const
+		error = new ApiError( 400, 'Bad Request' ),
+		{ abiturientID } = req.params,
+		{ field, payload } = req.body
+
+	switch ( field ) {
+
+		// change status
+
+		case 'status':
+
+			const
+				status = await db( 'statuses' )
+					.first( 'is_rejected' )
+					.where( 'status_id', payload.value )
+
+			try {
+
+				await db( 'abiturients' )
+					.update( 'status_id', payload.value )
+					.where( 'abiturient_id', abiturientID )
+
+			} catch {
+				error.add( 'status', 'Ошибка при записи в базу данных' )
+			}
+
+			if ( status?.is_rejected ) {
+
+				// TODO ::: send email
+
+			}
+
+			break
+
+		// set original certificate
+
+		case 'originalCertificate':
+
+			try {
+
+				await db( 'statements' )
+					.update( 'original_certificate', 0 )
+					.where( 'abiturient_id', abiturientID )
+
+				if ( payload.value ) {
+
+					await db( 'statements' )
+						.update( 'original_certificate', 1 )
+						.where( 'statement_id', payload.value )
+
+				}
+
+			} catch {
+				error.add( 'status', 'Ошибка при записи в базу данных' )
+			}
+
+			break
+
+	}
+
+	if ( !error.isEmpty() )
+		return next( error )
+
+	res.sendStatus( 204 )
 
 } )
 

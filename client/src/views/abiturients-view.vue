@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, provide, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
 
@@ -85,6 +85,8 @@ const
 		rowsPerPage : 25,
 		rowsNumber : 1
 	} )
+
+provide( 'abiturients', abiturients )
 
 const onRequest = async ( props : any ) => {
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import { useGroups } from '@/stores/groups'
@@ -7,6 +7,7 @@ import { useSocialStatuses } from '@/stores/social-statuses'
 import { useQuasar } from 'quasar'
 import { useApplicationStatuses } from '@/stores/application-statuses'
 import { useAuth } from '@/stores/auth'
+import { AxiosError } from 'axios'
 
 const
 	$q = useQuasar(),
@@ -19,7 +20,7 @@ const
 	socialStatusesStore = useSocialStatuses(),
 	applicationStatusesStore = useApplicationStatuses(),
 
-	abiturientID = $route.params.id,
+	abiturientID = Number( $route.params.id ),
 	abiturientDialog = ref( true ),
 
 	currentStep = ref( $route.query.step || 'aboutMe' ),
@@ -80,8 +81,12 @@ const
 
 	newStatus = reactive( {
 		dialog : false,
-		status : 0
-	} )
+		status : 0,
+
+		notice : ''
+	} ),
+
+	abiturients = inject<any>( 'abiturients' )
 
 // watchers
 
@@ -141,27 +146,111 @@ const loadAbiturient = async () => {
 
 onMounted( async () => {
 
+	$q.loading.show()
 	await loadAbiturient()
+	$q.loading.hide()
+
 	await applicationStatusesStore.get()
 	await socialStatusesStore.get()
 
 } )
 
-// change status
+// edit abiturient
 
-const changeStatus = async ( status : { statusID : number, title : string, color : string, isRating : boolean, isRejected : boolean } ) => {
-	console.log( status )
+const edit = async ( field : string, title : string, payload : object ) => {
 
-	newStatus.dialog = true
-	newStatus.status = status.statusID
+	let
+		isComplete = false
+
+	$q.loading.show()
+
+	try {
+
+		await api.put( `abiturients/${ abiturientID }`, {
+			field,
+			payload
+		} )
+
+		$q.notify( {
+			progress : true,
+			message : 'Сохранено',
+			caption : title,
+			type : 'positive',
+			position : 'bottom-left',
+			timeout : 3000
+		} )
+
+		isComplete = true
+
+	} catch ( e ) {
+
+		console.error( e )
+
+		if ( e instanceof AxiosError && e.response?.status === 400 ) {
+
+			$q.notify( {
+				progress : true,
+				message : `Не удалось обновить ${ title }`,
+				caption : `${ e.response.data.error.fields[ 0 ].description }`,
+				multiLine : true,
+				type : 'warning',
+				position : 'bottom-left'
+			} )
+
+		} else {
+
+			$q.notify( {
+				progress : true,
+				message : `Не удалось обновить ${ title }`,
+				caption : 'Подробная информация в консоли',
+				type : 'warning',
+				position : 'bottom-left'
+			} )
+
+		}
+
+	}
+
+	$q.loading.hide()
+
+	return isComplete
+
 }
 
-// save abiturient
+// selected application status computed
 
-// const
-// 	saveAbiturient = async () => {
-// 		await $router.replace( { name : 'abiturients' } )
-// 	}
+const selectedNewStatus = computed( () => applicationStatusesStore.statuses.find( s => s.statusID === newStatus.status ) )
+
+// change application status function
+
+const changeStatus = async () => {
+
+	if ( selectedNewStatus.value?.isRejected && !newStatus.notice )
+		return $q.notify( {
+			type : 'warning',
+			message : 'Необходимо заполнить причину отклонения',
+			position : 'bottom'
+		} )
+
+	if ( await edit( 'status', 'Статус заявления', { value : newStatus.status, notice : newStatus.notice } ) ) {
+
+		newStatus.dialog = false
+		currentStatus.value = newStatus.status
+
+		const abiturient = abiturients.value.find( ( s : any ) => s.abiturientID === abiturientID )
+
+		if ( abiturient )
+			abiturient.status = newStatus.status
+
+	}
+
+}
+
+// change original certificate on db
+
+watch( originalCertificateStatement, statement => {
+	edit( 'originalCertificate', 'Оригинал аттестата', { value : statement } )
+} )
 
 </script>
 
@@ -201,7 +290,8 @@ const changeStatus = async ( status : { statusID : number, title : string, color
 				  class="full-width text-caption"
 				  size="sm"
 				  v-for="status in applicationStatusesStore.statuses" v-show="status.statusID !== currentStatus"
-				  @click="changeStatus(status)"
+				  @click="newStatus.dialog = true, newStatus.status = status.statusID"
+				  v-close-popup
 			  >
 				{{ status.title }}
 			  </q-btn>
@@ -231,6 +321,7 @@ const changeStatus = async ( status : { statusID : number, title : string, color
 				  icon="info">
 
 			<div :class="$q.screen.lt.sm || 'row q-gutter-lg'">
+
 			  <q-input
 				  class="col"
 				  v-model="lastName"
@@ -242,7 +333,13 @@ const changeStatus = async ( status : { statusID : number, title : string, color
 				  autogrow
 				  no-error-icon
 				  :rules="[ rules.required ]"
-			  />
+			  >
+				<template v-slot:append>
+				  <q-btn size="sm" dense flat icon="save" color="positive"
+						 @click="edit('lastName', { value : lastName })" />
+				</template>
+			  </q-input>
+
 			  <q-input
 				  class="col"
 				  v-model="firstName"
@@ -919,13 +1016,29 @@ const changeStatus = async ( status : { statusID : number, title : string, color
 
 	  <q-card-section>
 		<div class="text-overline">Изменение статуса</div>
-		<div class="text-caption text-grey">При сохранении абитуриенту будет направлено письмо</div>
 
-		<q-input model-value="" label="Сообщение для абитуриента" />
+		<template v-if="selectedNewStatus.isRejected">
+		  <div class="text-caption text-grey">Абитуриенту будет направлено письмо с причиной отклонения заявления</div>
+		  <q-input v-model="newStatus.notice" autogrow label="Причина отклонения" clearable clear-icon="clear"
+				   maxlength="80"
+				   counter />
+		</template>
+		<template v-else-if="selectedNewStatus.isRating">
+		  <div class="text-caption text-grey">Вы уверены что хотите добавить абитуриента в рейтинг?</div>
+		</template>
+		<template v-else>
+		  <div class="text-caption text-grey">Вы уверены что хотите изменить статус?</div>
+		</template>
+
 	  </q-card-section>
-
 	  <q-card-actions>
-		<q-btn class="full-width" color="positive" size="sm" outline>Сохранить</q-btn>
+		<q-btn-group class="full-width q-gutter-xs" spread flat>
+		  <q-btn color="negative" size="sm" outline v-close-popup>Отменить</q-btn>
+		  <q-btn color="positive" size="sm" outline
+				 @click="changeStatus">
+			Подтвердить
+		  </q-btn>
+		</q-btn-group>
 	  </q-card-actions>
 
 	</q-card>

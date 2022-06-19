@@ -24,6 +24,8 @@ import applicationsStatusesRouter from './controllers/application-statuses'
 const
 	app = express()
 
+// middlewares
+
 app.use( express.json() )
 app.use( cors() )
 app.use( fileUpload({
@@ -40,6 +42,7 @@ app.use( fileUpload({
 }) )
 
 // routers
+
 app.use( '/api/abiturients', abiturientsRouter )
 app.use( '/api/groups', groupsRouter )
 app.use( '/api/social-statuses', socialStatusesRouter )
@@ -49,6 +52,7 @@ app.use( '/api/rating', ratingRouter )
 app.use( '/api/application-statuses', applicationsStatusesRouter )
 
 // errors check
+
 //noinspection JSUnusedLocalSymbols
 app.use( ( err : ApiError, req : Request, res : Response, next : NextFunction ) => {
 	res.status( err.status || 500 ).send( {
