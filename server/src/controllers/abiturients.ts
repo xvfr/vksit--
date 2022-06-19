@@ -5,6 +5,7 @@ import ApiError from '../errors/api'
 import disciplines from './disciplines'
 import * as fs from 'fs'
 import { isAuthorized } from '../middlewares/auth'
+import { log } from 'util'
 
 const
 	abiturientsRouter = express.Router()
@@ -488,12 +489,14 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 		// check passport number and series of approved abiturients
 
 		const
-			passportExists = await db( 'passports' )
-				.first( 1 )
-				.where( 'series', passportSeries )
-				.where( 'number', passportNumber )
+			passportExists = await db( 'passports as p' )
+				.first( 's.is_rating' )
+				.leftJoin('abiturients as a', 'a.passport_id', 'p.passport_id')
+				.leftJoin('statuses as s', 's.status_id', 'a.status_id')
+				.where( 'p.series', passportSeries )
+				.where( 'p.number', passportNumber )
 
-		if ( passportExists )
+		if ( passportExists?.is_rating )
 			error.add( 'Паспорт', 'На данные серию и номер паспорта уже подано заявление' )
 
 	}
@@ -665,7 +668,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 							passport_id : passportID
 						} )
 
-				'mv' in photo && await passportScan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileID }-${ abiturientID }.jpg` ) )
+				'mv' in passportScan && await passportScan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileID }-${ abiturientID }.jpg` ) )
 
 			} else {
 
@@ -697,7 +700,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 							certificate_id : certificateID
 						} )
 
-				'mv' in photo && await certificateScan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileID }-${ abiturientID }.jpg` ) )
+				'mv' in certificateScan && await certificateScan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileID }-${ abiturientID }.jpg` ) )
 
 			} else {
 
@@ -731,7 +734,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 								abiturient_id : abiturientID
 							} )
 
-					'mv' in photo && await extraFiles.mv( path.join( __dirname, '..', '..', 'uploads', 'extra', `${ fileID }-${ abiturientID }.jpg` ) )
+					'mv' in extraFiles && await extraFiles.mv( path.join( __dirname, '..', '..', 'uploads', 'extra', `${ fileID }-${ abiturientID }.jpg` ) )
 
 				} else {
 
@@ -761,17 +764,9 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 		} )
 
 	} catch ( error ) {
-
-		console.error( error )
-		// @ts-ignore
-		console.log( error.message )
-		// return next( new ApiError( 500, 'Внутренняя ошибка сервера' ) )
-
-		// TODO :: add normal catch
-
+		console.error( new Date(), ( error as Error )?.message )
+		return res.sendStatus( 500 )
 	}
-
-	// TODO :: send mail
 
 	res.sendStatus( 200 )
 

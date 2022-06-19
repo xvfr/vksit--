@@ -497,8 +497,16 @@ const sendApplication = async () => {
 
 	try {
 
-		const res = await api.post( '/abiturients', data )
-		console.log( res )
+		await api.post( '/abiturients', data )
+		// TODO :: get token for append application groups
+
+		$q.notify( {
+			message : 'Заявление успешно подано',
+			caption : 'После подтверждения на указанную почту придет оповещение',
+			position : 'center',
+			type : 'positive',
+			progress : true
+		} )
 
 	} catch ( e ) {
 
