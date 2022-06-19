@@ -936,7 +936,7 @@ const changeField = async () => {
 							  round
 							  icon="open_in_new"
 							  target="_blank"
-							  :href="`${API_BASE_URI}/abiturients/${abiturientID}/extra/${documents?.photo}?token=${authStore.user.token}`"
+							  :href="`${API_BASE_URI}/abiturients/${abiturientID}/photos/${documents?.photo}?token=${authStore.user.token}`"
 						  >
 							предпросмотр
 						  </q-btn>
