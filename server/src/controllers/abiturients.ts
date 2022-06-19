@@ -5,6 +5,7 @@ import ApiError from '../errors/api'
 import * as fs from 'fs'
 import { isAuthorized } from '../middlewares/auth'
 import mailer from '../mailer'
+import jwt from 'jsonwebtoken'
 
 const
 	abiturientsRouter = express.Router()
@@ -201,24 +202,67 @@ abiturientsRouter.get( '/:abiturientID', isAuthorized, async ( req, res, next ) 
 
  */
 
-// TODO :: add auth middleware
-
 abiturientsRouter.get( '/:abiturientID/:fileType/:fileID', async ( req, res, next ) => {
+
+	if ( !process.env.JWT_SECRET )
+		return res.sendStatus( 500 )
 
 	const
 		{
 			abiturientID,
 			fileID,
 			fileType
-		} = req.params
+		} = req.params,
+		{ token } = req.query
+
+	if ( !token )
+		return next( new ApiError( 400, 'Token must be passed' ) )
 
 	if ( ![ 'photos', 'passports', 'certificates', 'extra' ].includes( fileType ) )
 		return next( new ApiError( 400, 'Bad file type' ) )
+
+	try {
+		jwt.verify( String( token ), process.env.JWT_SECRET )
+	} catch {
+		return res.sendStatus( 401 )
+	}
 
 	if ( !fs.existsSync( path.join( __dirname, '..', '..', 'uploads', fileType, `${ fileID }-${ abiturientID }.jpg` ) ) )
 		return res.sendStatus( 404 )
 
 	res.sendFile( path.join( fileType, `${ fileID }-${ abiturientID }.jpg` ), { root : path.join( __dirname, '..', '..', 'uploads' ) } )
+
+} )
+
+abiturientsRouter.get( '/:abiturientID/:fileType/:fileID/download', async ( req, res, next ) => {
+
+	if ( !process.env.JWT_SECRET )
+		return res.sendStatus( 500 )
+
+	const
+		{
+			abiturientID,
+			fileID,
+			fileType
+		} = req.params,
+		{ token } = req.query
+
+	if ( !token )
+		return next( new ApiError( 400, 'Token must be passed' ) )
+
+	if ( ![ 'photos', 'passports', 'certificates', 'extra' ].includes( fileType ) )
+		return next( new ApiError( 400, 'Bad file type' ) )
+
+	try {
+		jwt.verify( String( token ), process.env.JWT_SECRET )
+	} catch {
+		return res.sendStatus( 401 )
+	}
+
+	if ( !fs.existsSync( path.join( __dirname, '..', '..', 'uploads', fileType, `${ fileID }-${ abiturientID }.jpg` ) ) )
+		return res.sendStatus( 404 )
+
+	res.download( path.join( __dirname, '..', '..', 'uploads', fileType, `${ fileID }-${ abiturientID }.jpg` ), `${ fileID }-${ abiturientID }-${ fileType }.jpg` )
 
 } )
 

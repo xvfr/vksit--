@@ -16,6 +16,7 @@ const
 
 	API_BASE_URI = import.meta.env.VITE_API_BASE_URI,
 
+	authStore = useAuth(),
 	groupsStore = useGroups(),
 	socialStatusesStore = useSocialStatuses(),
 	applicationStatusesStore = useApplicationStatuses(),
@@ -912,15 +913,33 @@ const changeField = async () => {
 				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'" v-if="documents?.photo">
 					<q-card>
 					  <q-img
-						  :src="`${API_BASE_URI}/abiturients/${abiturientID}/photos/${documents?.photo}`">
+						  :src="`${API_BASE_URI}/abiturients/${abiturientID}/photos/${documents?.photo}?token=${authStore.user.token}`">
 						<div class="absolute-top text-overline text-center">
 						  Фото (#{{ documents?.photo }})
 						</div>
 					  </q-img>
 					  <q-card-actions>
 						<q-btn-group flat class="full-width" spread>
-						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
-						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
+						  <q-btn size="xs"
+								 flat
+								 dense
+								 round
+								 icon="download"
+								 :href="`${API_BASE_URI}/abiturients/${abiturientID}/photos/${documents?.photo}/download?token=${authStore.user.token}`"
+						  >
+							скачать
+						  </q-btn>
+						  <q-btn
+							  size="xs"
+							  flat
+							  dense
+							  round
+							  icon="open_in_new"
+							  target="_blank"
+							  :href="`${API_BASE_URI}/abiturients/${abiturientID}/extra/${documents?.photo}?token=${authStore.user.token}`"
+						  >
+							предпросмотр
+						  </q-btn>
 						  <q-btn size="xs" flat dense round icon="delete" disable>удалить</q-btn>
 						</q-btn-group>
 					  </q-card-actions>
@@ -933,17 +952,37 @@ const changeField = async () => {
 
 				<q-tab-panel name="passport">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'" v-if="documents.passport.length">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'"
+					   v-if="documents.passport.length">
 					<q-card v-for="file in documents.passport">
-					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/passports/${file}`">
+					  <q-img
+						  :src="`${API_BASE_URI}/abiturients/${abiturientID}/passports/${file}?token=${authStore.user.token}`">
 						<div class="absolute-top text-overline text-center">
 						  Паспорт (#{{ file }})
 						</div>
 					  </q-img>
 					  <q-card-actions>
 						<q-btn-group flat class="full-width" spread>
-						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
-						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
+						  <q-btn size="xs"
+								 flat
+								 dense
+								 round
+								 icon="download"
+								 :href="`${API_BASE_URI}/abiturients/${abiturientID}/passports/${file}/download?token=${authStore.user.token}`"
+						  >
+							скачать
+						  </q-btn>
+						  <q-btn
+							  size="xs"
+							  flat
+							  dense
+							  round
+							  icon="open_in_new"
+							  target="_blank"
+							  :href="`${API_BASE_URI}/abiturients/${abiturientID}/passports/${file}?token=${authStore.user.token}`"
+						  >
+							предпросмотр
+						  </q-btn>
 						  <q-btn size="xs" flat dense round icon="delete" disable>удалить</q-btn>
 						</q-btn-group>
 					  </q-card-actions>
@@ -956,17 +995,37 @@ const changeField = async () => {
 
 				<q-tab-panel name="certificate">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'" v-if="documents.certificate.length">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'"
+					   v-if="documents.certificate.length">
 					<q-card v-for="file in documents.certificate">
-					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/certificates/${file}`">
+					  <q-img
+						  :src="`${API_BASE_URI}/abiturients/${abiturientID}/certificates/${file}?token=${authStore.user.token}`">
 						<div class="absolute-top text-overline text-center">
 						  Аттестат (#{{ file }})
 						</div>
 					  </q-img>
 					  <q-card-actions>
 						<q-btn-group flat class="full-width" spread>
-						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
-						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
+						  <q-btn size="xs"
+								 flat
+								 dense
+								 round
+								 icon="download"
+								 :href="`${API_BASE_URI}/abiturients/${abiturientID}/certificates/${file}/download?token=${authStore.user.token}`"
+						  >
+							скачать
+						  </q-btn>
+						  <q-btn
+							  size="xs"
+							  flat
+							  dense
+							  round
+							  icon="open_in_new"
+							  target="_blank"
+							  :href="`${API_BASE_URI}/abiturients/${abiturientID}/certificates/${file}?token=${authStore.user.token}`"
+						  >
+							предпросмотр
+						  </q-btn>
 						  <q-btn size="xs" flat dense round icon="delete" disable>удалить</q-btn>
 						</q-btn-group>
 					  </q-card-actions>
@@ -979,17 +1038,38 @@ const changeField = async () => {
 
 				<q-tab-panel name="extra">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'" v-if="documents.extra.length">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'"
+					   v-if="documents.extra.length">
 					<q-card v-for="file in documents.extra">
-					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/extra/${file}`">
+					  <q-img
+						  :src="`${API_BASE_URI}/abiturients/${abiturientID}/extra/${file}?token=${authStore.user.token}`">
 						<div class="absolute-top text-overline text-center">
 						  Дополнительный файл (#{{ file }})
 						</div>
 					  </q-img>
 					  <q-card-actions>
 						<q-btn-group flat class="full-width" spread>
-						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
-						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
+						  <q-btn
+							  size="xs"
+							  flat
+							  dense
+							  round
+							  icon="download"
+							  :href="`${API_BASE_URI}/abiturients/${abiturientID}/extra/${file}/download?token=${authStore.user.token}`"
+						  >
+							скачать
+						  </q-btn>
+						  <q-btn
+							  size="xs"
+							  flat
+							  dense
+							  round
+							  icon="open_in_new"
+							  target="_blank"
+							  :href="`${API_BASE_URI}/abiturients/${abiturientID}/extra/${file}?token=${authStore.user.token}`"
+						  >
+							предпросмотр
+						  </q-btn>
 						  <q-btn size="xs" flat dense round icon="delete" disable>удалить</q-btn>
 						</q-btn-group>
 					  </q-card-actions>
