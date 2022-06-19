@@ -15,7 +15,6 @@ const
 
 	API_BASE_URI = import.meta.env.VITE_API_BASE_URI,
 
-	authStore = useAuth(),
 	groupsStore = useGroups(),
 	socialStatusesStore = useSocialStatuses(),
 	applicationStatusesStore = useApplicationStatuses(),
@@ -159,10 +158,10 @@ const changeStatus = async ( status : { statusID : number, title : string, color
 
 // save abiturient
 
-const
-	saveAbiturient = async () => {
-		await $router.replace( { name : 'abiturients' } )
-	}
+// const
+// 	saveAbiturient = async () => {
+// 		await $router.replace( { name : 'abiturients' } )
+// 	}
 
 </script>
 

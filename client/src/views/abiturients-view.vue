@@ -2,13 +2,13 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import api from '@/api'
+
+// stores
 import { useApplicationStatuses } from '@/stores/application-statuses'
-import { useAuth } from '@/stores/auth'
 
 const
 	$q = useQuasar(),
 
-	authStore = useAuth(),
 	applicationStatusesStore = useApplicationStatuses(),
 
 	loading = reactive( {

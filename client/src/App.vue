@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import NavigationRoutes from '@/components/navigation-routes.vue'
+import { onMounted, ref } from 'vue'
+import api from '@/api'
+
+// stores
 import { useAuth } from '@/stores/auth'
 import { useGroups } from '@/stores/groups'
-import api from '@/api'
+
+// components
+import NavigationRoutes from '@/components/navigation-routes.vue'
 
 const
 	authStore = useAuth(),
@@ -12,8 +16,12 @@ const
 
 groupsStore.get()
 
-if ( authStore.isAuthorized )
-	api.defaults.headers.common['Authorization'] = authStore.user.token
+onMounted(() => {
+
+	if ( authStore.isAuthorized )
+		api.defaults.headers.common['Authorization'] = authStore.user.token
+
+})
 
 </script>
 
