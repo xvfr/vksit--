@@ -137,9 +137,8 @@ const loadAbiturient = async () => {
 
 		dormitory.value = response.abiturient.dormitory
 
+		// cache
 		abiturientCache.value = response
-
-		// TODO :: add response to cache for use latter (check changed field)
 
 	} catch {
 		errors.exists = true

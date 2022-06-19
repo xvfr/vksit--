@@ -2,10 +2,9 @@ import express from 'express'
 import db from '../db'
 import path from 'path'
 import ApiError from '../errors/api'
-import disciplines from './disciplines'
 import * as fs from 'fs'
 import { isAuthorized } from '../middlewares/auth'
-import { log } from 'util'
+import mailer from '../mailer'
 
 const
 	abiturientsRouter = express.Router()
@@ -491,8 +490,8 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 		const
 			passportExists = await db( 'passports as p' )
 				.first( 's.is_rating' )
-				.leftJoin('abiturients as a', 'a.passport_id', 'p.passport_id')
-				.leftJoin('statuses as s', 's.status_id', 'a.status_id')
+				.leftJoin( 'abiturients as a', 'a.passport_id', 'p.passport_id' )
+				.leftJoin( 'statuses as s', 's.status_id', 'a.status_id' )
 				.where( 'p.series', passportSeries )
 				.where( 'p.number', passportNumber )
 
@@ -783,13 +782,13 @@ abiturientsRouter.put( '/:abiturientID', isAuthorized, async ( req, res, next ) 
 
 	switch ( field ) {
 
-		// change status
+		// change application status
 
 		case 'status':
 
 			const
 				status = await db( 'statuses' )
-					.first( 'is_rejected' )
+					.first( 'is_rejected', 'is_rating' )
 					.where( 'status_id', payload.value )
 
 			try {
@@ -804,7 +803,54 @@ abiturientsRouter.put( '/:abiturientID', isAuthorized, async ( req, res, next ) 
 
 			if ( status?.is_rejected ) {
 
-				// TODO ::: send email
+				const { email } = await db( 'abiturients' )
+					.first( 'email' )
+					.where( 'abiturient_id', abiturientID )
+
+				try {
+
+					await mailer.sendMail( {
+						to : email,
+						subject : 'Заявление на обучение',
+						text : 'Заявление отклонено, причина: ' + payload?.notice
+					} )
+
+				} catch ( e ) {
+					console.log( e )
+				}
+
+			}
+
+			if ( status?.is_rating ) {
+
+				const { email } = await db( 'abiturients' )
+					.first( 'email' )
+					.where( 'abiturient_id', abiturientID )
+
+				try {
+
+					await mailer.sendMail( {
+						to : email,
+						subject : 'Заявление на обучение',
+						text : 'Документы приняты, аттестат для зачисления нужно предоставить в приёмную комиссию до 15 августа. Время работы: ПН-ПТ с 9.00 до 15.00, адрес: Вологда, первомайская 42, каб.5\n' +
+							'В случае зачисления на обучение, для оформления личного дела студента необходимо на организационное собрание группы принести: \n' +
+							'1.\tБумажную папку с завязками\n' +
+							'2.\tСогласие представителя субъекта персональных данных на обработку персональных данных и на передачу персональных данных третьим лицам несовершеннолетних студентов заполняет родитель/законный представитель (образец заполнения на сайте колледжа/Приёмная комиссия/бланки, документы).\n' +
+							'3.\t4 фотографии 3*4\n' +
+							'4.\tКопия   СНИЛС\n' +
+							'5.\tКопия ИНН\n' +
+							'6.\tКопия медицинского полиса\n' +
+							'7.\tМедицинская справка ф.086-у с заключением о проф. пригодности П. 12 (может обучаться по специальности «…..») .\n' +
+							'8.\tКопию сертификата ПФДО\n' +
+							'9.\tДокументы правоустанавливающие статус сироты\\опекаемого.\n' +
+							'10.\tДля инвалидов– ИПР, справка МСЭ, \n' +
+							'11.\tДля лиц с ОВЗ- заключение ПМПК.\n' +
+							'Характеристику из школы (по желанию)'
+					} )
+
+				} catch ( e ) {
+					console.log( e )
+				}
 
 			}
 

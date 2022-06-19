@@ -7,6 +7,11 @@ declare let process : {
 
 		PORT : number,
 
-		JWT_SECRET : string
+		JWT_SECRET : string,
+
+		SMTP_HOST : string,
+		SMTP_PORT ?: number,
+		SMTP_USER : string,
+		SMTP_PASSWORD : string
 	}
 }
