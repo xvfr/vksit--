@@ -1105,13 +1105,13 @@ const changeField = async () => {
 	  <q-card-section>
 		<div class="text-overline">Изменение статуса</div>
 
-		<template v-if="selectedNewStatus.isRejected">
+		<template v-if="selectedNewStatus?.isRejected">
 		  <div class="text-caption text-grey">Абитуриенту будет направлено письмо с причиной отклонения заявления</div>
 		  <q-input v-model="newStatus.notice" autogrow label="Причина отклонения" clearable clear-icon="clear"
 				   maxlength="80"
 				   counter />
 		</template>
-		<template v-else-if="selectedNewStatus.isRating">
+		<template v-else-if="selectedNewStatus?.isRating">
 		  <div class="text-caption text-grey">Вы уверены что хотите добавить абитуриента в рейтинг?</div>
 		</template>
 		<template v-else>
