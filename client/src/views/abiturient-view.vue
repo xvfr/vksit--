@@ -6,6 +6,7 @@ import { useGroups } from '@/stores/groups'
 import { useSocialStatuses } from '@/stores/social-statuses'
 import { useQuasar } from 'quasar'
 import { useApplicationStatuses } from '@/stores/application-statuses'
+import { useAuth } from '@/stores/auth'
 
 const
 	$q = useQuasar(),
@@ -14,6 +15,7 @@ const
 
 	API_BASE_URI = import.meta.env.VITE_API_BASE_URI,
 
+	authStore = useAuth(),
 	groupsStore = useGroups(),
 	socialStatusesStore = useSocialStatuses(),
 	applicationStatusesStore = useApplicationStatuses(),
@@ -75,7 +77,12 @@ const
 		exists : false // is abiturient exists
 	} ),
 
-	possibleEndSchoolYears = Array( 15 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i )
+	possibleEndSchoolYears = Array( 15 ).fill( new Date().getFullYear() ).map( ( val, i ) => val - i ),
+
+	newStatus = reactive( {
+		dialog : false,
+		status : 0
+	} )
 
 // watchers
 
@@ -85,7 +92,7 @@ watch( originalCertificateExists, exists => exists || ( originalCertificateState
 
 // load abiturient
 
-;( async () => {
+const loadAbiturient = async () => {
 
 	try {
 
@@ -131,19 +138,23 @@ watch( originalCertificateExists, exists => exists || ( originalCertificateState
 		errors.exists = true
 	}
 
-} )()
+}
 
-onMounted( () => {
+onMounted( async () => {
 
-	socialStatusesStore.get()
-	applicationStatusesStore.get()
+	await loadAbiturient()
+	await applicationStatusesStore.get()
+	await socialStatusesStore.get()
 
 } )
 
 // change status
 
-const changeStatus = async ( statusID : number ) => {
-	console.log( statusID )
+const changeStatus = async ( status : { statusID : number, title : string, color : string, isRating : boolean, isRejected : boolean } ) => {
+	console.log( status )
+
+	newStatus.dialog = true
+	newStatus.status = status.statusID
 }
 
 // save abiturient
@@ -904,24 +915,22 @@ const
 
   <!-- change status dialog -->
 
-  <!--  <q-dialog square v-model="changeStatusDialog">-->
-  <!--	<q-card>-->
+  <q-dialog square v-model="newStatus.dialog">
+	<q-card>
 
-  <!--	  <q-card-section>-->
-  <!--		<div class="text-overline">Изменение статуса</div>-->
-  <!--		<div class="text-caption text-grey">При сохранении абитуриенту будет направлено письмо</div>-->
-  <!--	  </q-card-section>-->
+	  <q-card-section>
+		<div class="text-overline">Изменение статуса</div>
+		<div class="text-caption text-grey">При сохранении абитуриенту будет направлено письмо</div>
 
-  <!--	  <q-card-section>-->
-  <!--		<q-input type="textarea" model-value="" label="Сообщение для абитуриента" />-->
-  <!--	  </q-card-section>-->
+		<q-input model-value="" label="Сообщение для абитуриента" />
+	  </q-card-section>
 
-  <!--	  <q-card-actions>-->
-  <!--		<q-btn class="full-width" color="positive" outline>Сохранить</q-btn>-->
-  <!--	  </q-card-actions>-->
+	  <q-card-actions>
+		<q-btn class="full-width" color="positive" size="sm" outline>Сохранить</q-btn>
+	  </q-card-actions>
 
-  <!--	</q-card>-->
-  <!--  </q-dialog>-->
+	</q-card>
+  </q-dialog>
 
 </template>
 
