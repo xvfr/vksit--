@@ -237,8 +237,8 @@ onMounted( async () => {
 			<q-btn-group flat>
 			  <q-btn flat round color="primary" icon="edit" size="sm"
 					 @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" />
-			  <q-btn flat round color="indigo-5" icon="download" size="sm" />
-			  <q-btn flat round color="red-5" icon="delete" size="sm" />
+			  <q-btn flat round color="indigo-5" icon="download" size="sm" disable />
+			  <q-btn flat round color="red-5" icon="delete" size="sm" disable />
 			</q-btn-group>
 		  </q-td>
 		</template>
@@ -288,8 +288,8 @@ onMounted( async () => {
 				<q-btn-group flat>
 				  <q-btn flat round color="primary" icon="edit" size="sm"
 						 @click="$router.push( { name : 'abiturient', params : { id : props.row.abiturientID } } )" />
-				  <q-btn flat round color="indigo-5" icon="download" size="sm" />
-				  <q-btn flat round color="red-5" icon="delete" size="sm" />
+				  <q-btn flat round color="indigo-5" icon="download" size="sm" disable />
+				  <q-btn flat round color="red-5" icon="delete" size="sm" disable />
 				</q-btn-group>
 			  </div>
 

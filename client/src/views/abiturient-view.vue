@@ -910,7 +910,7 @@ const changeField = async () => {
 
 				<q-tab-panel name="photo">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents?.photo">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'" v-if="documents?.photo">
 					<q-card>
 					  <q-img
 						  :src="`${API_BASE_URI}/abiturients/${abiturientID}/photos/${documents?.photo}`">
@@ -922,7 +922,7 @@ const changeField = async () => {
 						<q-btn-group flat class="full-width" spread>
 						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
 						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
-						  <q-btn size="xs" flat dense round icon="delete">удалить</q-btn>
+						  <q-btn size="xs" flat dense round icon="delete" disable>удалить</q-btn>
 						</q-btn-group>
 					  </q-card-actions>
 					</q-card>
@@ -934,7 +934,7 @@ const changeField = async () => {
 
 				<q-tab-panel name="passport">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.passport.length">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'" v-if="documents.passport.length">
 					<q-card v-for="file in documents.passport">
 					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/passports/${file}`">
 						<div class="absolute-top text-overline text-center">
@@ -945,7 +945,7 @@ const changeField = async () => {
 						<q-btn-group flat class="full-width" spread>
 						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
 						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
-						  <q-btn size="xs" flat dense round icon="delete">удалить</q-btn>
+						  <q-btn size="xs" flat dense round icon="delete" disable>удалить</q-btn>
 						</q-btn-group>
 					  </q-card-actions>
 					</q-card>
@@ -957,7 +957,7 @@ const changeField = async () => {
 
 				<q-tab-panel name="certificate">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.certificate.length">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'" v-if="documents.certificate.length">
 					<q-card v-for="file in documents.certificate">
 					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/certificates/${file}`">
 						<div class="absolute-top text-overline text-center">
@@ -968,7 +968,7 @@ const changeField = async () => {
 						<q-btn-group flat class="full-width" spread>
 						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
 						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
-						  <q-btn size="xs" flat dense round icon="delete">удалить</q-btn>
+						  <q-btn size="xs" flat dense round icon="delete" disable>удалить</q-btn>
 						</q-btn-group>
 					  </q-card-actions>
 					</q-card>
@@ -980,7 +980,7 @@ const changeField = async () => {
 
 				<q-tab-panel name="extra">
 
-				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex'" v-if="documents.extra.length">
+				  <div class="q-gutter-md" :class="$q.screen.lt.sm || 'flex items-center'" v-if="documents.extra.length">
 					<q-card v-for="file in documents.extra">
 					  <q-img :src="`${API_BASE_URI}/abiturients/${abiturientID}/extra/${file}`">
 						<div class="absolute-top text-overline text-center">
@@ -991,7 +991,7 @@ const changeField = async () => {
 						<q-btn-group flat class="full-width" spread>
 						  <q-btn size="xs" flat dense round icon="download">скачать</q-btn>
 						  <q-btn size="xs" flat dense round icon="open_in_new">предпросмотр</q-btn>
-						  <q-btn size="xs" flat dense round icon="delete">удалить</q-btn>
+						  <q-btn size="xs" flat dense round icon="delete" disable>удалить</q-btn>
 						</q-btn-group>
 					  </q-card-actions>
 					</q-card>
