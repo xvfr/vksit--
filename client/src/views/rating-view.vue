@@ -23,17 +23,17 @@ const
 			sortable : true
 		},
 		{
-			name : 'firstName',
-			label : 'Имя',
-			field : 'firstName',
+			name : 'lastName',
+			label : 'Фамилия',
+			field : 'lastName',
 			align : 'center',
 
 			sortable : true
 		},
 		{
-			name : 'lastName',
-			label : 'Фамилия',
-			field : 'lastName',
+			name : 'firstName',
+			label : 'Имя',
+			field : 'firstName',
 			align : 'center',
 
 			sortable : true
@@ -154,7 +154,7 @@ onMounted( async () => {
 
 	if ( selectedSpecialization.value ) {
 
-		onRequest( {
+		await onRequest( {
 			pagination : pagination.value,
 			filter : undefined
 		} )
