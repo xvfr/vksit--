@@ -592,7 +592,7 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 	// specializations verify
 
 	const
-		selectedSpecializations = req.body.selectedSpecializationsRaw.split( ',' ).filter( ( s : number ) => s > 0 ) as number[]
+		selectedSpecializations = selectedSpecializationsRaw.split( ',' ).filter( ( s : number ) => s > 0 ) as number[]
 
 	if ( !selectedSpecializations.length )
 		error.add( 'Специальность', 'Необходимо выбрать хотя бы одну специальность' )
