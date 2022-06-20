@@ -837,19 +837,18 @@ const emailRegexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 			  />
 
 			  <q-input
-				  class="col"
-				  v-model="passportIssuedDate"
-				  type="date"
-				  stack-label
-				  label="Дата выдачи"
+				  class="col-3"
+				  v-model="birthPlace"
+				  label="Место рождения"
+				  maxlength="50"
+				  counter
 				  clearable
+				  autogrow
 				  clear-icon="clear"
-				  min="2000-01-01"
-				  :max="new Date().toLocaleDateString('en-ca')"
 				  no-error-icon
 				  :rules="[ rules.required ]"
 
-				  tabindex="10"
+				  tabindex="12"
 			  />
 
 			</div>
@@ -872,18 +871,19 @@ const emailRegexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 			  />
 
 			  <q-input
-				  class="col-3"
-				  v-model="birthPlace"
-				  label="Место рождения"
-				  maxlength="50"
-				  counter
+				  class="col"
+				  v-model="passportIssuedDate"
+				  type="date"
+				  stack-label
+				  label="Дата выдачи"
 				  clearable
-				  autogrow
 				  clear-icon="clear"
+				  min="2000-01-01"
+				  :max="new Date().toLocaleDateString('en-ca')"
 				  no-error-icon
 				  :rules="[ rules.required ]"
 
-				  tabindex="12"
+				  tabindex="10"
 			  />
 
 			  <q-input
