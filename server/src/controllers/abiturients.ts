@@ -3,9 +3,10 @@ import db from '../db'
 import path from 'path'
 import ApiError from '../errors/api'
 import * as fs from 'fs'
-import { isAuthorized } from '../middlewares/auth'
+import { isAuthorized, passedValidToken } from '../middlewares/auth'
 import mailer from '../mailer'
 import jwt from 'jsonwebtoken'
+import { isArray } from 'util'
 
 const
 	abiturientsRouter = express.Router()
@@ -304,7 +305,8 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 			passportScan,
 			certificateScan,
 			extraFiles
-		} = req.files || {}
+		} = req.files || {},
+		isSendByAdmin = passedValidToken( req )
 
 	// ----------- basic
 
@@ -367,11 +369,15 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 	// email verify
 
-	if ( !email.trim() )
-		error.add( 'E-mail', 'Обязательное поле' )
+	if ( !isSendByAdmin ) {
 
-	else if ( !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/.test( email ) )
-		error.add( 'E-mail', 'Некорректный e-mail' )
+		if ( !email || !email.trim() )
+			error.add( 'E-mail', 'Обязательное поле' )
+
+		else if ( !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/.test( email ) )
+			error.add( 'E-mail', 'Некорректный e-mail' )
+
+	}
 
 	// photo verify
 
@@ -445,32 +451,35 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 	// passport scan
 
-	if ( !passportScan || ( Array.isArray( passportScan ) && !passportScan.length ) )
+	if ( ( !passportScan || ( Array.isArray( passportScan ) && !passportScan.length ) ) && !isSendByAdmin )
 		error.add( 'Скан паспорта', 'Обязательное поле' )
 	else {
 
-		if ( Array.isArray( passportScan ) ) {
+		if ( passportScan || Array.isArray( passportScan ) ) {
 
-			for ( const scan of passportScan ) {
+			if ( Array.isArray( passportScan ) ) {
 
-				if ( !( 'mimetype' in scan ) || !/^image\/.*$/.test( scan.mimetype ) )
-					error.add( `Скан паспорта (${ scan.name })`, 'Типом файла может быть только изображение' )
+				for ( const scan of passportScan ) {
 
-				else if ( scan.size > 3145728 )
-					error.add( `Скан паспорта (${ scan.name })`, 'Максимальный размер файла 3МБ' )
+					if ( !( 'mimetype' in scan ) || !/^image\/.*$/.test( scan.mimetype ) )
+						error.add( `Скан паспорта (${ scan.name })`, 'Типом файла может быть только изображение' )
+
+					else if ( scan.size > 3145728 )
+						error.add( `Скан паспорта (${ scan.name })`, 'Максимальный размер файла 3МБ' )
+
+				}
+
+			} else {
+
+				if ( !( 'mimetype' in passportScan ) || !/^image\/.*$/.test( passportScan.mimetype ) )
+					error.add( 'Скан паспорта', 'Типом файла может быть только изображение' )
+
+				else if ( passportScan.size > 3145728 )
+					error.add( 'Скан паспорта', 'Максимальный размер файла 3МБ' )
 
 			}
 
-		} else {
-
-			if ( !( 'mimetype' in passportScan ) || !/^image\/.*$/.test( passportScan.mimetype ) )
-				error.add( 'Скан паспорта', 'Типом файла может быть только изображение' )
-
-			else if ( passportScan.size > 3145728 )
-				error.add( 'Скан паспорта', 'Максимальный размер файла 3МБ' )
-
 		}
-
 
 	}
 
@@ -546,29 +555,33 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 	// certificate scan
 
-	if ( !certificateScan || ( Array.isArray( certificateScan ) && !certificateScan.length ) )
+	if ( ( !certificateScan || ( Array.isArray( certificateScan ) && !certificateScan.length ) ) && !isSendByAdmin )
 		error.add( 'Скан аттестата', 'Обязательное поле' )
 	else {
 
-		if ( Array.isArray( certificateScan ) ) {
+		if ( certificateScan || Array.isArray( certificateScan ) ) {
 
-			for ( const scan of certificateScan ) {
+			if ( Array.isArray( certificateScan ) ) {
 
-				if ( !( 'mimetype' in scan ) || !/^image\/.*$/.test( scan.mimetype ) )
-					error.add( `Скан аттестата (${ scan.name })`, 'Типом файла может быть только изображение' )
+				for ( const scan of certificateScan ) {
 
-				else if ( scan.size > 3145728 )
-					error.add( `Скан аттестата (${ scan.name })`, 'Максимальный размер файла 3МБ' )
+					if ( !( 'mimetype' in scan ) || !/^image\/.*$/.test( scan.mimetype ) )
+						error.add( `Скан аттестата (${ scan.name })`, 'Типом файла может быть только изображение' )
+
+					else if ( scan.size > 3145728 )
+						error.add( `Скан аттестата (${ scan.name })`, 'Максимальный размер файла 3МБ' )
+
+				}
+
+			} else {
+
+				if ( !( 'mimetype' in certificateScan ) || !/^image\/.*$/.test( certificateScan.mimetype ) )
+					error.add( 'Скан аттестата', 'Типом файла может быть только изображение' )
+
+				else if ( certificateScan.size > 3145728 )
+					error.add( 'Скан аттестата', 'Максимальный размер файла 3МБ' )
 
 			}
-
-		} else {
-
-			if ( !( 'mimetype' in certificateScan ) || !/^image\/.*$/.test( certificateScan.mimetype ) )
-				error.add( 'Скан аттестата', 'Типом файла может быть только изображение' )
-
-			else if ( certificateScan.size > 3145728 )
-				error.add( 'Скан аттестата', 'Максимальный размер файла 3МБ' )
 
 		}
 
@@ -703,66 +716,74 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 
 			}
 
-			if ( !Array.isArray( passportScan ) ) {
+			if ( passportScan || Array.isArray( passportScan ) ) {
 
-				const
-					[ fileID ] = await trx( 'passports_files' )
-						.insert( {
-							passport_id : passportID
-						} )
+				if ( !Array.isArray( passportScan ) ) {
 
-				'mv' in passportScan && await passportScan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileID }-${ abiturientID }.jpg` ) )
+					const
+						[ fileID ] = await trx( 'passports_files' )
+							.insert( {
+								passport_id : passportID
+							} )
 
-			} else {
+					'mv' in passportScan && await passportScan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileID }-${ abiturientID }.jpg` ) )
 
-				const
-					filesCount = passportScan.length
+				} else {
 
-				await trx( 'passports_files' )
-					.insert( Array( filesCount ).fill( { passport_id : passportID }, 0, filesCount ) )
+					const
+						filesCount = passportScan.length
 
-				const
-					fileIDs = await trx( 'passports_files' )
-						.select( 'file_id' )
-						.where( 'passport_id', passportID )
+					await trx( 'passports_files' )
+						.insert( Array( filesCount ).fill( { passport_id : passportID }, 0, filesCount ) )
 
-				let i = 0
+					const
+						fileIDs = await trx( 'passports_files' )
+							.select( 'file_id' )
+							.where( 'passport_id', passportID )
 
-				for ( const scan of passportScan ) {
-					await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileIDs[ i ].file_id }-${ abiturientID }.jpg` ) )
-					i++
+					let i = 0
+
+					for ( const scan of passportScan ) {
+						await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'passports', `${ fileIDs[ i ].file_id }-${ abiturientID }.jpg` ) )
+						i++
+					}
+
 				}
 
 			}
 
-			if ( !Array.isArray( certificateScan ) ) {
+			if ( passportScan || Array.isArray( passportScan ) ) {
 
-				const
-					[ fileID ] = await trx( 'certificates_files' )
-						.insert( {
-							certificate_id : certificateID
-						} )
+				if ( !Array.isArray( certificateScan ) ) {
 
-				'mv' in certificateScan && await certificateScan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileID }-${ abiturientID }.jpg` ) )
+					const
+						[ fileID ] = await trx( 'certificates_files' )
+							.insert( {
+								certificate_id : certificateID
+							} )
 
-			} else {
+					'mv' in certificateScan && await certificateScan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileID }-${ abiturientID }.jpg` ) )
 
-				const
-					filesCount = certificateScan.length
+				} else {
 
-				await trx( 'certificates_files' )
-					.insert( Array( filesCount ).fill( { certificate_id : certificateID }, 0, filesCount ) )
+					const
+						filesCount = certificateScan.length
 
-				const
-					fileIDs = await trx( 'certificates_files' )
-						.select( 'file_id' )
-						.where( 'certificate_id', certificateID )
+					await trx( 'certificates_files' )
+						.insert( Array( filesCount ).fill( { certificate_id : certificateID }, 0, filesCount ) )
 
-				let i = 0
+					const
+						fileIDs = await trx( 'certificates_files' )
+							.select( 'file_id' )
+							.where( 'certificate_id', certificateID )
 
-				for ( const scan of certificateScan ) {
-					await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileIDs[ i ].file_id }-${ abiturientID }.jpg` ) )
-					i++
+					let i = 0
+
+					for ( const scan of certificateScan ) {
+						await scan.mv( path.join( __dirname, '..', '..', 'uploads', 'certificates', `${ fileIDs[ i ].file_id }-${ abiturientID }.jpg` ) )
+						i++
+					}
+
 				}
 
 			}

@@ -29,3 +29,31 @@ export const isAuthorized = ( req : Request, res : Response, next : NextFunction
 	}
 
 }
+
+export const passedValidToken = ( req : Request ) => {
+
+	if ( !process.env.JWT_SECRET )
+		return false
+
+	try {
+
+		const
+			token = req.headers.authorization
+
+		if ( !token )
+			return false
+		else {
+
+			const
+				data = jwt.verify( token, process.env.JWT_SECRET )
+
+			return true
+
+		}
+
+	} catch {
+		return true
+	}
+
+
+}

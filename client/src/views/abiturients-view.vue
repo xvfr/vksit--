@@ -211,7 +211,8 @@ onMounted( async () => {
 
 		<template #body-cell-email="props">
 		  <q-td key="email" :props="props">
-			<a :href="`mailto:${props.row.email}`">{{ props.row.email }}</a>
+			<a v-if="props.row.email" :href="`mailto:${props.row.email}`">{{ props.row.email }}</a>
+			<template v-else>—</template>
 		  </q-td>
 		</template>
 

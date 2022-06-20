@@ -5,10 +5,12 @@ import api from '@/api'
 import { useGroups } from '@/stores/groups'
 import { useSocialStatuses } from '@/stores/social-statuses'
 import { AxiosError } from 'axios'
+import { useAuth } from '@/stores/auth'
 
 const
 	$q = useQuasar(),
 
+	authStore = useAuth(),
 	groupsStore = useGroups(),
 	socialStatusesStore = useSocialStatuses(),
 
@@ -152,7 +154,6 @@ socialStatusesStore.get()
 watch( lastName, ( value ) =>
 	nextTick( () => {
 		value && ( lastName.value = value
-			// .replace( /[^А-ЯЁёа-я]*/g, '' )
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 )
@@ -160,7 +161,6 @@ watch( lastName, ( value ) =>
 watch( firstName, ( value ) =>
 	nextTick( () => {
 		value && ( firstName.value = value
-			// .replace( /[^А-ЯЁёа-я]*/g, '' )
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 )
@@ -168,7 +168,6 @@ watch( firstName, ( value ) =>
 watch( middleName, ( value ) =>
 	nextTick( () => {
 		value && ( middleName.value = value
-			// .replace( /[^А-ЯЁёа-я]*/g, '' )
 			.replace( /^[а-я]/, value[ 0 ].toUpperCase() ) )
 	} )
 )
@@ -224,7 +223,7 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 		isValid = true,
 		scanError = false
 
-	if ( step === 'passport' ) {
+	if ( step === 'passport' && !authStore.isAuthorized ) {
 
 		if ( !passportScan.length ) {
 
@@ -241,7 +240,7 @@ const validateForm = ( formRef : any, step : 'aboutMe' | 'passport' | 'certifica
 
 	}
 
-	if ( step === 'certificate' ) {
+	if ( step === 'certificate' && !authStore.isAuthorized ) {
 
 		if ( !certificateScan.length ) {
 
@@ -356,7 +355,8 @@ const sendApplication = async () => {
 	if ( !phoneNumber.value || !/^\(\d{3}\)\s\d{3}\s-\s\d{4}$/.test( phoneNumber.value ) )
 		errorsCount++
 
-	if ( !email.value || !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/.test( email.value ) )
+	// not required for admin but regexp for all
+	if ( ( !authStore.isAuthorized && !email.value ) || ( email.value && !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/.test( email.value ) ) )
 		errorsCount++
 
 	if ( errorsCount ) {
@@ -385,7 +385,7 @@ const sendApplication = async () => {
 	if ( !passportAddress.value )
 		errorsCount++
 
-	if ( !passportScan.length )
+	if ( !passportScan.length && !authStore.isAuthorized )
 		errorsCount++
 
 	if ( errorsCount ) {
@@ -434,7 +434,7 @@ const sendApplication = async () => {
 			errorsCount++
 	}
 
-	if ( !certificateScan.length )
+	if ( !certificateScan.length && !authStore.isAuthorized )
 		errorsCount++
 
 	if ( errorsCount ) {
@@ -463,12 +463,13 @@ const sendApplication = async () => {
 
 	data.append( 'firstName', firstName.value as any )
 	data.append( 'lastName', lastName.value as any )
-	if ( !!middleName.value )
+	if ( middleName.value )
 		data.append( 'middleName', middleName.value as any )
 	data.append( 'birthDate', birthDate.value as any )
 	data.append( 'address', address.value as any )
 	data.append( 'phoneNumber', phoneNumber.value as any )
-	data.append( 'email', email.value as any )
+	if ( email.value )
+		data.append( 'email', email.value as any )
 	for ( const file of photo as any )
 		data.append( 'photo', file )
 
@@ -498,6 +499,7 @@ const sendApplication = async () => {
 	try {
 
 		await api.post( '/abiturients', data )
+
 		// TODO :: get token for append application groups
 
 		$q.notify( {
@@ -568,6 +570,8 @@ const rejectFiles = ( entities : { failedPropValidation : string, file : File }[
 	}
 
 }
+
+const emailRegexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
 </script>
 
@@ -737,7 +741,10 @@ const rejectFiles = ( entities : { failedPropValidation : string, file : File }[
 				  counter
 				  clear-icon="clear"
 				  no-error-icon
-				  :rules="[ rules.required, 'email' ]"
+				  :rules="[
+					  v => authStore.isAuthorized || !!v || '* обязательное поле',
+					  v => !!v && emailRegexp.test(v) || !v && authStore.isAuthorized || '* некорректный e-mail'
+				  ]"
 
 				  tabindex="7"
 			  />

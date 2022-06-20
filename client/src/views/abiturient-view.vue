@@ -427,6 +427,7 @@ const changeField = async () => {
 				  no-error-icon
 				  :rules="[ rules.required, 'email' ]"
 			  />
+			  <!--				TODO :: change email not required for admin			-->
 			</div>
 
 			<div class="q-mt-md row">
