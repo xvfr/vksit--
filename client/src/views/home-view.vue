@@ -30,6 +30,7 @@ const
 	phoneNumber = ref<null | string>( localStorage.phoneNumber || null ),
 	email = ref<null | string>( localStorage.email || null ),
 	photo = reactive<object[]>( [] ),
+	photoRef = ref(),
 
 	// 2 step
 
@@ -42,6 +43,7 @@ const
 	passportAddressEqual = ref( false ),
 	passportCode = ref<null | string>( localStorage.passportCode || null ),
 	passportScan = reactive<object[]>( [] ),
+	passportScanRef = ref(),
 
 	// 3 step
 
@@ -51,6 +53,7 @@ const
 	marks = reactive<{ disciplineID : number, value : null | number }[]>( localStorage.marks ? JSON.parse( localStorage.marks ) : [] ),
 	marksList = ref<{ disciplineID : number, title : string }[]>( [] ),
 	certificateScan = reactive<object[]>( [] ),
+	certificateScanRef = ref(),
 
 	// 4 step
 
@@ -61,6 +64,7 @@ const
 	} ] ),
 	dormitory = ref<boolean>( localStorage.dormitory || false ),
 	extraFiles = reactive<object[]>( [] ),
+	extraFilesRef = ref(),
 	extraFilesDialog = ref( false ),
 
 	// other
@@ -554,6 +558,17 @@ const rejectFiles = ( entities : { failedPropValidation : string, file : File }[
 				progress : true
 			} )
 
+		} else if ( entity.failedPropValidation === 'max-files' ) {
+
+			$q.notify( {
+				type : 'warning',
+				message : 'Превышено максимальное количество файлов',
+				caption : entity.file.name,
+				timeout : 5000,
+				position : 'bottom-left',
+				progress : true
+			} )
+
 		} else {
 
 			$q.notify( {
@@ -573,13 +588,56 @@ const rejectFiles = ( entities : { failedPropValidation : string, file : File }[
 
 const emailRegexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
+const clearForm = () => {
+	firstName.value = null
+	lastName.value = null
+	middleName.value = null
+	birthDate.value = null
+	address.value = null
+	phoneNumber.value = null
+	email.value = null
+	photo.splice( 0, photo.length )
+	if ( photoRef.value )
+		photoRef.value.reset()
+
+	passportSeries.value = null
+	passportNumber.value = null
+	birthPlace.value = null
+	passportIssuedBy.value = null
+	passportIssuedDate.value = null
+	passportCode.value = null
+	passportAddress.value = null
+	passportScan.splice( 0, passportScan.length )
+	if ( passportScanRef.value )
+		passportScanRef.value.reset()
+
+	certificateNumber.value = null
+	schoolName.value = null
+	endSchoolYear.value = null
+	marks.forEach( s => s.value = null )
+	certificateScan.splice( 0, certificateScan.length )
+	if ( certificateScanRef.value )
+		certificateScanRef.value.reset()
+
+	selectedSpecializations.value = null
+	selectedSocialStatuses.value = null
+	dormitory.value = false
+	extraFiles.splice( 0, extraFiles.length )
+	if ( extraFilesRef.value )
+		extraFilesRef.value.reset()
+}
+
 </script>
 
 <template>
   <q-card square class="application-form">
 	<q-card-section>
 
-	  <div class="text-overline">Подача заявления</div>
+	  <div class="flex items-baseline">
+		<div class="text-overline">Подача заявления</div>
+		<q-space></q-space>
+		<q-btn size="sm" outline color="negative" align="right" tabindex="-1" @click="clearForm">Очистить форму</q-btn>
+	  </div>
 
 	  <q-slide-transition>
 		<q-banner inline-actions v-if="errors.length" class="bg-red-4 text-white">
@@ -763,6 +821,8 @@ const emailRegexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 
 				  max-file-size="3145728"
 				  @rejected="rejectFiles"
+
+				  ref="photoRef"
 
 				  @added=" ( files ) => photo.push( ...files ) "
 				  @removed=" ( files ) => removeFileFromStash( photo, files ) "
@@ -954,6 +1014,8 @@ const emailRegexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 				  color="indigo-4"
 				  accept="image/*"
 
+				  ref="passportScanRef"
+
 				  max-file-size="3145728"
 				  @rejected="rejectFiles"
 
@@ -1084,6 +1146,8 @@ const emailRegexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 				  flat
 				  color="indigo-4"
 				  accept="image/*"
+
+				  ref="certificateScanRef"
 
 				  max-file-size="3145728"
 				  @rejected="rejectFiles"
@@ -1217,6 +1281,8 @@ const emailRegexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 				  flat
 				  color="indigo-4"
 				  accept="image/*"
+
+				  ref="extraFilesRef"
 
 				  max-file-size="3145728"
 				  @rejected="rejectFiles"

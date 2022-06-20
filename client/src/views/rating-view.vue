@@ -202,6 +202,8 @@ onMounted( async () => {
 		  option-value="groupID"
 	  />
 
+	  <!--	TODO ::: add mobile sort  -->
+
 	  <q-table
 		  v-if="selectedSpecialization"
 
