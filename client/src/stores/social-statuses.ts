@@ -25,11 +25,6 @@ export const useSocialStatuses = defineStore( 'social-statuses', {
 			if ( this.socialStatuses.length )
 				return
 
-			this.socialStatuses.push( {
-				statusID : -1,
-				title : 'Нет'
-			} )
-
 			try {
 
 				const { data : { items } } = await api.get( '/social-statuses' )

@@ -58,10 +58,7 @@ const
 	// 4 step
 
 	selectedSpecializations = ref<object[] | null>( localStorage.selectedSpecializations ? JSON.parse( localStorage.selectedSpecializations ) : [] ),
-	selectedSocialStatuses = ref<object[] | null>( localStorage.selectedSocialStatuses ? JSON.parse( localStorage.selectedSocialStatuses ) : [ {
-		statusID : -1,
-		title : 'Нет'
-	} ] ),
+	selectedSocialStatuses = ref<object[] | null>( localStorage.selectedSocialStatuses ? JSON.parse( localStorage.selectedSocialStatuses ) : [] ),
 	dormitory = ref<boolean>( localStorage.dormitory || false ),
 	extraFiles = reactive<object[]>( [] ),
 	extraFilesRef = ref(),
@@ -177,33 +174,6 @@ watch( middleName, ( value ) =>
 )
 
 watch( passportAddressEqual, () => passportAddress.value = address.value )
-
-watch( selectedSocialStatuses, ( value ) => {
-
-	if ( value?.length === 0 )
-		return selectedSocialStatuses.value = [ { statusID : -1, title : 'Нет' } ]
-
-	if ( !value || value.length <= 1 )
-		return
-
-	const
-		lastValue = value[ value.length - 1 ] as any
-
-	if ( lastValue.statusID === -1 )
-
-		selectedSocialStatuses.value = [ { statusID : -1, title : 'Нет' } ]
-
-	else {
-
-		const
-			negativeIndex = value.findIndex( ( f : any ) => f.statusID === -1 )
-
-		if ( negativeIndex !== -1 )
-			selectedSocialStatuses.value?.splice( negativeIndex, 1 )
-
-	}
-
-} )
 
 const validateComponents = ( components : { validate () : boolean }[] ) => {
 
@@ -1244,6 +1214,9 @@ const clearForm = () => {
 				  :options="socialStatusesStore.socialStatuses"
 				  option-value="statusID"
 				  option-label="title"
+
+				  clearable
+				  clear-icon="clear"
 
 				  behavior="dialog"
 
