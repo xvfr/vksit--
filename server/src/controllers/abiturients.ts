@@ -702,14 +702,12 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 						disciplines = trx( 'xref_groups_disciplines' )
 							.select( 'discipline_id' )
 							.where( 'group_id', group )
-							.as( 'disciplines' )
 
 					const
 						averageScore = trx( 'xref_abiturients_disciplines_marks' )
 							.first( trx.raw( 'sum(`value`) / count(*)' ) )
 							.where( 'abiturient_id', abiturientID )
 							.andWhere( 'discipline_id', 'in', disciplines )
-							.as( 'average_score' )
 
 					return {
 						abiturient_id : abiturientID,
