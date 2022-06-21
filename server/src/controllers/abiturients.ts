@@ -7,6 +7,7 @@ import { isAuthorized, passedValidToken } from '../middlewares/auth'
 import mailer from '../mailer'
 import jwt from 'jsonwebtoken'
 import { isArray } from 'util'
+import disciplines from './disciplines'
 
 const
 	abiturientsRouter = express.Router()
@@ -694,15 +695,32 @@ abiturientsRouter.post( '/', async ( req, res, next ) => {
 					value : e.value
 				} ) ) )
 
-			await trx( 'statements' )
-				.insert( selectedSpecializations.map( group => ( {
-					abiturient_id : abiturientID,
-					group_id : group,
-					average_score : db( 'xref_groups_disciplines as gd' )
-						.first( db.raw( 'sum(value) / count(1) as average_score' ) )
-						.leftJoin( 'xref_abiturients_disciplines_marks as dm', 'dm.discipline_id', 'gd.discipline_id' )
-						.where( 'group_id', group )
-				} ) ) )
+			const
+				insertData = selectedSpecializations.map( group => {
+
+					const
+						disciplines = trx( 'xref_groups_disciplines' )
+							.select( 'discipline_id' )
+							.where( 'group_id', group )
+							.as( 'disciplines' )
+
+					const
+						averageScore = trx( 'xref_abiturients_disciplines_marks' )
+							.first( trx.raw( 'sum(`value`) / count(*)' ) )
+							.where( 'abiturient_id', abiturientID )
+							.andWhere( 'discipline_id', 'in', disciplines )
+							.as( 'average_score' )
+
+					return {
+						abiturient_id : abiturientID,
+						group_id : group,
+						average_score : averageScore
+					}
+
+				} )
+
+			await trx('statements')
+				.insert( insertData )
 
 			if ( photo ) {
 

@@ -191,14 +191,18 @@ const edit = async ( field : string, title : string, payload : object ) => {
 
 		if ( e instanceof AxiosError && e.response?.status === 400 ) {
 
-			$q.notify( {
-				progress : true,
-				message : `Не удалось обновить ${ title }`,
-				caption : `${ e.response.data.error.fields[ 0 ].description }`,
-				multiLine : true,
-				type : 'warning',
-				position : 'bottom-left'
-			} )
+			for ( const error of e.response.data.error.fields ) {
+
+				$q.notify( {
+					progress : true,
+					message : `Не удалось обновить ${ title }`,
+					caption : error.description,
+					multiLine : true,
+					type : 'warning',
+					position : 'bottom-left'
+				} )
+
+			}
 
 		} else {
 

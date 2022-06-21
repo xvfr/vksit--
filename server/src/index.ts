@@ -18,6 +18,7 @@ import disciplinesRouter from './controllers/disciplines'
 import staffRouter from './controllers/staff'
 import ratingRouter from './controllers/rating'
 import applicationsStatusesRouter from './controllers/application-statuses'
+import db from './db'
 
 // app
 
@@ -28,7 +29,7 @@ const
 
 app.use( express.json() )
 app.use( cors() )
-app.use( fileUpload({
+app.use( fileUpload( {
 
 	limits : {
 		fileSize : 5 * 1024 * 1024,
@@ -39,7 +40,7 @@ app.use( fileUpload({
 	safeFileNames : true,
 	abortOnLimit : true
 
-}) )
+} ) )
 
 // routers
 
