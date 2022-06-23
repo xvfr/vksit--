@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { useGroups } from '@/stores/groups'
+import { useQuasar } from 'quasar'
 import api from '@/api'
 
 const
+	$q = useQuasar(),
 	groupsStore = useGroups(),
 
 	loading = reactive( {
@@ -114,24 +116,40 @@ onMounted( async () => {
 		sunday : 0
 	} ) )
 
-	const { data : { items } } = await api( 'statistics' )
+	try {
 
-	let index = 1
-	for ( const { field, label, data } of items ) {
+		const { data : { items } } = await api( 'statistics' )
 
-		columns.value[ index ].label = label
+		let index = 1
+		for ( const { field, label, data } of items ) {
 
-		for ( const { group_id, count } of data ) {
+			columns.value[ index ].label = label
 
-			const
-				group = statistics.value.find( s => s.group.groupID == group_id )
+			for ( const { group_id, count } of data ) {
 
-			if ( group )
-				group[ field as 'lastWeek' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' ] = count
+				const
+					group = statistics.value.find( s => s.group.groupID == group_id )
 
+				if ( group )
+					group[ field as 'lastWeek' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' ] = count
+
+			}
+
+			index++
 		}
 
-		index++
+	} catch ( e ) {
+
+		console.error( e )
+
+		$q.notify( {
+			progress : true,
+			message : 'Не удалось загрузить статистику',
+			caption : 'Подробная информация в консоли',
+			type : 'warning',
+			position : 'bottom-left'
+		} )
+
 	}
 
 	loading.statistics = false

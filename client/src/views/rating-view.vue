@@ -138,7 +138,7 @@ const onRequest = async ( props : any ) => {
 
 		$q.notify( {
 			progress : true,
-			message : 'Не удалось загрузить список рейтинг',
+			message : 'Не удалось загрузить рейтинг',
 			caption : 'Подробная информация в консоли',
 			type : 'warning',
 			position : 'bottom-left'
