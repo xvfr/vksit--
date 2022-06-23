@@ -19,6 +19,7 @@ import staffRouter from './controllers/staff'
 import ratingRouter from './controllers/rating'
 import applicationsStatusesRouter from './controllers/application-statuses'
 import db from './db'
+import statisticsRouter from './controllers/statistics'
 
 // app
 
@@ -51,6 +52,7 @@ app.use( '/api/disciplines', disciplinesRouter )
 app.use( '/api/staff', staffRouter )
 app.use( '/api/rating', ratingRouter )
 app.use( '/api/application-statuses', applicationsStatusesRouter )
+app.use( '/api/statistics', statisticsRouter )
 
 // errors check
 
